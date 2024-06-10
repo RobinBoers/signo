@@ -48,7 +48,7 @@ defmodule Signo do
       Has the following fields:
 
       - `type`: the type of token, see `t:type/0`.
-      - `lexeme`: the string as found in the source code. Forexample: `"3.0e4"`.
+      - `lexeme`: the string as found in the source code.
       """
 
       field :type, type() | :error
@@ -94,7 +94,7 @@ defmodule Signo do
     The value of the literal as an elixir `t:term/0`.
     Example: `30_000`
     """
-    @type literal :: integer() | float() | String.t()
+    @type literal :: integer() | float() | boolean()
 
     @spec new(String.t()) :: t()
     def new(lexeme) do
@@ -129,7 +129,7 @@ defmodule Signo do
     end
 
     defp literal(lexeme) do
-      integer(lexeme) || float(lexeme) || string(lexeme) || boolean(lexeme)
+      integer(lexeme) || float(lexeme) || boolean(lexeme)
     end
 
     defp integer(lexeme) do
@@ -141,13 +141,6 @@ defmodule Signo do
     defp float(lexeme) do
       if Regex.match?(~r/^[[:digit:]]+\.[[:digit:]]+$/, lexeme) do
         {:literal, String.to_float(lexeme)}
-      end
-    end
-
-    defp string(lexeme) do
-      case Regex.run(~r/^"([^"]*)"$/, lexeme) do
-        [^lexeme, contents] -> {:literal, contents}
-        _ -> nil
       end
     end
 
