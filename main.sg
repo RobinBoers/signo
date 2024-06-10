@@ -1,0 +1,9 @@
+(let some_number 22)
+(let myAccountBalance 3.99)
+(let slogan "yay")
+(let 5variablesYAY "cool")
+
+(def double (n) (* 2 n))
+(let result (double 8))
+(if (== result 16) (print "works!!") (print "broken"))
+(if (not false))
