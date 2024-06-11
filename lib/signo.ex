@@ -162,7 +162,62 @@ defmodule Signo do
     filename
     |> File.read!()
     |> tokenize!()
-    |> dbg()
+  end
+
+  defmodule Cursor do
+    @moduledoc false
+    use TypedStruct
+
+    import Signo.String, only: [pop_first: 1]
+
+    typedstruct enforce: true do
+      field :source, String.t()
+      field :tokens, [Token.t()]
+      field :row, non_neg_integer()
+      field :col, non_neg_integer()
+    end
+
+    @spec new(String.t()) :: t()
+    def new(source) do
+      %__MODULE__{
+        source: source,
+        tokens: [],
+        row: 0,
+        col: 0
+      }
+    end
+
+    defguard is_done(cursor)
+      when is_binary(cursor.source) and cursor.source == ""
+
+    @spec done?(t()) :: boolean()
+    def done?(cursor) do
+      is_done(cursor)
+    end
+
+    @spec peek(t()) :: String.grapheme() | nil
+    def peek(cursor) do
+      unless done?(cursor), do: String.first(cursor.source)
+    end
+
+    @spec next(t()) :: {String.grapheme(), t()}
+    def next(cursor) when is_done(cursor) do
+      {cursor, nil}
+    end
+
+    def next(cursor) do
+      {char, source} = pop_first(cursor.source)
+      cursor = increment_pos(%__MODULE__{cursor | source: source}, char)
+
+      {cursor, char}
+    end
+
+    defp increment_pos(cursor, "\n") do
+      %__MODULE__{cursor | row: cursor.row + 1, col: 0}
+    end
+    defp increment_pos(cursor, _char) do
+      %__MODULE__{cursor | col: cursor.col + 1}
+    end
   end
 
   @doc """
