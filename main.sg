@@ -1,8 +1,8 @@
-(let some_number 22)
+(let meaningOfTheUniverse 42)
 (let myAccountBalance 3.99)
-(let 5wowisthispossible 69420)
+(let wowisthispossible 69420)
 
 (def double (n) (* 2 n))
 (let result (double 8))
-(if (== result 16) (print 69) (print 420))
-(if (not false))
+(if (== result 16) (print "it Works!") (print "it doesnt!"))
+(if (not false) (print "hello"))

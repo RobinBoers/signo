@@ -17,7 +17,7 @@ defmodule Signo do
   - `def` defines a function, like this: `(NAME ARGUMENTS BODY)`.
   """
 
-  defmodule TokenizeError do
+  defmodule LexingError do
     @moduledoc """
     Raised when the compiler finds an unexpected lexeme while
     tokenizing the source code.
@@ -53,8 +53,8 @@ defmodule Signo do
 
       field :type, type() | :error
       field :lexeme, String.t()
-      field :row, non_neg_integer(), default: 0
-      field :col, non_neg_integer(), default: 0
+      field :row, non_neg_integer()
+      field :col, non_neg_integer()
     end
 
     @type type ::
@@ -62,142 +62,45 @@ defmodule Signo do
       | :closing
       | :symbol
       | {:literal, literal()}
-
-      # I haven't defined all possible operators and keywords here, because then
-      # they'd be duplicated, as they're down here too.
-      | {:keyword, atom()}
-      | {:operator, atom()}
-
-    @keywords %{
-      :let => "let",
-      :def => "def",
-      :if => "if"
-    }
-
-    @operators %{
-      equals: "==",
-      not_equals: "!==",
-      lt: "<",
-      gt: ">",
-      lte: "<=",
-      gte: ">=",
-      not: "not",
-      and: "and",
-      or: "or",
-      nor: "nor",
-      xor: "xor"
-    }
-
-    @overloadables ["+", "-", "*", "/", "^", "%", "@", "&", "#"]
+      | {:keyword, :if | :let | :def}
 
     @typedoc """
     The value of the literal as an elixir `t:term/0`.
     Example: `30_000`
     """
     @type literal :: integer() | float() | boolean()
-
-    @spec new(String.t()) :: t()
-    def new(lexeme) do
-      if type = type(lexeme) do
-        %__MODULE__{
-          type: type,
-          lexeme: lexeme
-        }
-      else
-        raise TokenizeError, %__MODULE__{
-          type: :error,
-          lexeme: lexeme
-        }
-      end
-    end
-
-    defp type(lexeme) do
-      case lexeme do
-        "(" -> :opening
-        ")" -> :closing
-        lexeme ->
-          keyword(lexeme) || operator(lexeme) || literal(lexeme) || symbol(lexeme)
-      end
-    end
-
-    defp keyword(lexeme) do
-      if kw = reverse_lookup(@keywords, lexeme), do: {:keyword, kw}
-    end
-
-    defp operator(lexeme) do
-      if op = reverse_lookup(@operators, lexeme), do: {:operator, op}
-    end
-
-    defp literal(lexeme) do
-      integer(lexeme) || float(lexeme) || boolean(lexeme)
-    end
-
-    defp integer(lexeme) do
-      if Regex.match?(~r/^[[:digit:]]+$/, lexeme) do
-        {:literal, String.to_integer(lexeme)}
-      end
-    end
-
-    defp float(lexeme) do
-      if Regex.match?(~r/^[[:digit:]]+\.[[:digit:]]+$/, lexeme) do
-        {:literal, String.to_float(lexeme)}
-      end
-    end
-
-    defp boolean(lexeme) do
-      if lexeme in ["true", "false"] do
-        {:literal, String.to_existing_atom(lexeme)}
-      end
-    end
-
-    defp symbol(lexeme) do
-      if lexeme in @overloadables or
-        Regex.match?(~r/^[[:alnum:]_]+$/i, lexeme) do
-        :symbol
-      end
-    end
   end
 
   def main(filename \\ "main.sg") do
     filename
     |> File.read!()
-    |> tokenize!()
+    |> lex!()
   end
 
   defmodule Cursor do
     @moduledoc false
     use TypedStruct
 
-    import Signo.String, only: [pop_first: 1]
-
     typedstruct enforce: true do
-      field :source, String.t()
-      field :tokens, [Token.t()]
-      field :row, non_neg_integer()
-      field :col, non_neg_integer()
+      field :source, [String.grapheme()]
+      field :tokens, [Token.t()], default: []
+      field :row, non_neg_integer(), default: 0
+      field :col, non_neg_integer(), default: 0
     end
 
     @spec new(String.t()) :: t()
     def new(source) do
       %__MODULE__{
-        source: source,
-        tokens: [],
-        row: 0,
-        col: 0
+        source: String.graphemes(source),
       }
     end
 
     defguard is_done(cursor)
-      when is_binary(cursor.source) and cursor.source == ""
+      when cursor.source == []
 
     @spec done?(t()) :: boolean()
     def done?(cursor) do
       is_done(cursor)
-    end
-
-    @spec peek(t()) :: String.grapheme() | nil
-    def peek(cursor) do
-      unless done?(cursor), do: String.first(cursor.source)
     end
 
     @spec next(t()) :: {String.grapheme(), t()}
@@ -205,18 +108,77 @@ defmodule Signo do
       {cursor, nil}
     end
 
-    def next(cursor) do
-      {char, source} = pop_first(cursor.source)
-      cursor = increment_pos(%__MODULE__{cursor | source: source}, char)
-
-      {cursor, char}
+    def next(%{source: [char | source]} = cursor) do
+      {cursor
+       |> update_source(source)
+       |> increment(char), char}
     end
 
-    defp increment_pos(cursor, "\n") do
-      %__MODULE__{cursor | row: cursor.row + 1, col: 0}
+    defp update_source(cursor, source) do
+      %__MODULE__{cursor | source: source}
     end
-    defp increment_pos(cursor, _char) do
-      %__MODULE__{cursor | col: cursor.col + 1}
+
+    defp increment(c, "\n"), do: %__MODULE__{c | row: c.row + 1, col: 0}
+    defp increment(c, _char), do: %__MODULE__{c | col: c.col + 1}
+
+    @spec append(t(), Token.t()) :: t()
+    def append(cursor, %Token{} = token) do
+      %__MODULE__{cursor | tokens: [token | cursor.tokens]}
+    end
+  end
+
+  defmodule Lexer do
+    @moduledoc false
+
+    import Signo.Cursor, only: [is_done: 1]
+    import Signo.Map, only: [reverse_lookup: 2]
+
+    @keywords %{
+      let: "let",
+      def: "def",
+      if: "if"
+    }
+
+    @whitespace ["\n", "\t", "\v", "\r", " "]
+    @overloadables ["+", "-", "*", "/", "^", "%", "@", "&", "#", "!", "~", "<", ">", "<=", ">=", "==", "!=="]
+
+    def lex!(cursor) when is_done(cursor) do
+      cursor.tokens
+    end
+
+    def lex!(cursor) do
+      cursor
+      |> advance()
+      |> lex!()
+    end
+
+    defp advance(cursor) do
+      {cursor, c} = Cursor.next(cursor)
+      case c do
+        _ when c in @whitespace -> cursor
+        _ when c in @overloadables -> token(cursor, c, :symbol)
+        "(" -> token(cursor, c, :opening)
+        ")" -> token(cursor, c, :closing)
+        ~s/"/ -> string(cursor)
+      end
+    end
+
+    defp string(cursor, acc \\ []) do
+      case Cursor.next(cursor) do
+        {"\"", cursor} -> token(cursor, )
+    end
+
+    defp string(cursor) when is_done(cursor) do
+      raise LexingError, cursor.
+    end
+
+    defp token(cursor, lexeme, type) when is_atom(type) do
+      Cursor.append(cursor, %Token{
+        type: type,
+        lexeme: lexeme,
+        row: cursor.row,
+        col: cursor.col
+      })
     end
   end
 
@@ -224,21 +186,14 @@ defmodule Signo do
   Converts a string containing valid Signo source code into
   a list of `Signo.Token`s.
 
-  Raises `Signo.TokenizeError` when encountering unknown characters.
+  Raises `Signo.LexingError` when encountering unknown characters.
 
   Multiple lines are supported.
   """
-  @spec tokenize!(String.t()) :: [Token.t()]
-  def tokenize!(source) do
+  @spec lex!(String.t()) :: [Token.t()]
+  def lex!(source) when is_binary(source) do
     source
-    |> pad("(")
-    |> pad(")")
-    |> String.split()
-    |> Enum.map(&String.trim/1)
-    |> Enum.map(&Token.new/1)
-  end
-
-  defp pad(haystack, needle) do
-    String.replace(haystack, needle, " #{needle} ")
+    |> Cursor.new()
+    |> Lexer.lex!()
   end
 end
