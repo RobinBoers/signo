@@ -128,8 +128,4 @@ defmodule Signo.Lexer do
   def is_quote(ch) do
     ch == ~s/"/
   end
-
-  # defp is_two_char_operator(["!" | ["=" | _]]), do: true
-  # defp is_two_char_operator(["=" | ["=" | _]]), do: true
-  # defp is_two_char_operator(_), do: false
 end
