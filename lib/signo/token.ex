@@ -4,7 +4,7 @@ defmodule Signo.Token do
   """
   use TypedStruct
 
-  import Signo.Map, only: [reverse_lookup: 2]
+  alias Signo.Location
 
   typedstruct enforce: true do
     @typedoc """
@@ -35,4 +35,14 @@ defmodule Signo.Token do
   Example: `30_000`
   """
   @type literal :: integer() | float() | boolean()
+
+  @spec new(type(), String.t(), Location.t()) :: t()
+  def new(type, lexeme, loc) do
+    %__MODULE__{
+      type: type,
+      lexeme: lexeme,
+      row: loc.row,
+      col: loc.col
+    }
+  end
 end

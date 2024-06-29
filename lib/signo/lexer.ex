@@ -1,11 +1,10 @@
 defmodule Signo.Lexer do
   @moduledoc false
 
-  alias Signo.Cursor
+  alias Signo.Location
   alias Signo.Token
 
-  import Signo.Cursor, only: [next: 1]
-  import Signo.Map, only: [reverse_lookup: 2]
+  import Signo.Location, only: [increment: 2]
 
   defmodule LexingError do
     @moduledoc """
@@ -23,96 +22,114 @@ defmodule Signo.Lexer do
     end
   end
 
-  @whitespace ["\n", "\t", "\v", "\r", " "]
-  @overloadables ["+", "-", "*", "/", "^", "%", "@", "&", "#", "!", "~", "<", ">", "<=", ">=", "=", "==", "!="]
+  @keywords ["if", "let", "def"]
+  @special ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
 
-  def lex!(source) when is_binary(source) do
-    source |> Cursor.new() |> interate(fn char, cur ->
-      case char do
-        ">" -> case next(cursor) do
-          {"=", cur} -> token(cur, ">=", :symbol)
-          _ -> token(cur, char, :symbol)
-        end
-        "<" -> case next(cursor) do
-          {"=", cursor} -> token(cur, "<=", :symbol)
-          _ -> token(cur, char, :symbol)
-        end
-        "=" -> case next(cursor) do
-          {"=", cur} -> token(cur, "==", :symbol)
-          _ -> token(cur, char, :symbol)
-        end
-        "!" -> case next(cursor) do
-          {"=", cur} -> token(cur, "!=", :symbol)
-          _ -> token(cur, char, :symbol)
-        end
+  @spec lex!(String.t()) :: [Token.t()]
+  def lex!(source) do
+    source
+    |> String.replace("\n\r", "\n")
+    |> String.graphemes()
+    |> lex()
+  end
 
-        _ when char in @whitespace -> cur
-        _ when char in @overloadables -> token(cur, char, :symbol)
+  @spec lex([String.grapheme()], [Token.t()], Location.t()) :: [Token.t()]
+  defp lex(chars, tokens \\ [], loc \\ %Location{})
 
-        "(" -> token(cur, char, :opening)
-        ")" -> token(cur, char, :closing)
-        "'" -> iterate(cursor, fn
-          "'", cur -> {:break, token(cursor, lexeme, {:literal, literal})}
+  defp lex(_chars = [], tokens, loc) do
+    Enum.reverse([Token.new(:eof, loc) | tokens])
+  end
 
-        end)
+  defp lex(chars = [ch | rest], tokens, loc) do
+    cond do
+      is_whitespace(ch) -> lex(rest, tokens, loc)
+      is_letter(ch) -> read_identifier(chars, tokens, loc)
+      is_digit(ch) -> read_number(chars, tokens, loc)
+      is_quote(ch) -> read_string(chars, tokens, loc)
+      true -> read_next_char(chars, tokens, loc)
+    end
+  end
+
+  defp read_identifier(chars, tokens) do
+    {collected, rest} = Enum.split_while(chars, &is_letter/1)
+    lexeme = Enum.join(collected)
+    type = lookup_keyword(lexeme)
+
+    token = Token.new(type, lexeme, loc)
+    tokenize(rest, [token | tokens], increment(loc, collected))
+  end
+
+  defp lookup_keyword(lexeme) do
+    if lexeme in @keywords do
+      {:keyword, String.to_existing_atom(lexeme)}
+    else
+      :symbol
+    end
+  end
+
+  defp read_number(chars, tokens) do
+    {collected, rest} = Enum.split_while(chars, &is_digit/1)
+    lexeme = Enum.join(collected)
+    {literal, ""} = Integer.parse(lexeme)
+
+    token = Token.new({:literal, literal}, lexeme, loc)
+    tokenize(rest, [token | tokens], increment(loc, collected))
+  end
+
+  def read_string([_quote | rest], tokens) do
+    {collected, [_quote | rest]} = Enum.split_while(rest, &(!is_quote(&1)))
+    literal = Enum.join(collected)
+    token = Token.new({:literal, literal}, "'#{literal}'", loc)
+
+    # add 2x `nil` to account for the quotes
+    tokenize(rest, [token | tokens], increment(loc, [nil, nil] ++ collected))
+  end
+
+  def read_next_char(_chars = [ch | rest], tokens, loc) do
+    token =
+      case ch do
+        "(" -> Token.new(:opening, ch, loc)
+        ")" -> Token.new(:closing, ch, loc)
+        "=" -> Token.new(:symbol, ch, loc)
+        "-" -> Token.new(:symbol, ch, loc)
+        "*" -> Token.new(:symbol, ch, loc)
+        "/" -> Token.new(:symbol, ch, loc)
+        "^" -> Token.new(:symbol, ch, loc)
+        "%" -> Token.new(:symbol, ch, loc)
+        "&" -> Token.new(:symbol, ch, loc)
+        "@" -> Token.new(:symbol, ch, loc)
+        "#" -> Token.new(:symbol, ch, loc)
+        "!" -> Token.new(:symbol, ch, loc)
+        "~" -> Token.new(:symbol, ch, loc)
+        "<" -> Token.new(:symbol, ch, loc)
+        ">" -> Token.new(:symbol, ch, loc)
+        _ -> Token.new(:illegal, ch, loc)
       end
 
-      c, acc when c in @whitespace -> acc
-      c, acc when c in @overloadables -> token(acc, c, :symbol)
-      "(", acc -> token(acc, "(", :symbol)
-
-      c, acc
-      case c do
-        _ when c in @whitespace -> :cont
-        _ when c in @overloadables -> token(cursor, char, :symbol)
-        "(" ->
-
-        "'" -> interate(cursor, fn cursor, char ->
-          "'" ->
-          :eof -> raise LexingError, token(cursor, :eof, :eof)
-          _ -> {:cont, cursor}
-        end)
-      end
-    end)
+    tokenize(rest, [token | tokens], increment(loc, ch))
   end
 
-
-
-  defp advance(cursor, char) do
-    case char do
-      _ when char in @whitespace -> cursor
-      _ when char in @overloadables -> token(cursor, char, :symbol)
-      "(" -> token(cursor, char, :opening)
-      ")" -> token(cursor, char, :closing)
-
-    end
+  defp is_whitespace(ch) do
+    ch in ["\n", "\t", "\v", "\r", " "]
   end
 
-  defp string(cursor, lexeme) do
-    {cursor, char} = Cursor.next()
-    lexeme = lexeme <> char
-
-    case char do
-
-
-
-    end
+  defp is_letter(ch) do
+    is_lower(ch) or is_upper(ch) or is_special(ch)
   end
 
-  def interate(cursor, fun) do
-    {cursor, char} = Cursor.next()
-    case fun.(cursor, char) do
-      %Cursor{} = cursor -> interate(cursor, fun)
-      :break -> cursor
-    end
+  defp is_lower(ch), do: "a" <= ch && ch <= "z"
+  defp is_upper(ch), do: "A" <= ch && ch <= "Z"
+  defp is_special(ch), do: ch in @special
+
+  defp is_digit(ch) do
+    "0" <= ch && ch <= "9"
   end
 
-  defp token(cursor, lexeme, type) do
-    Cursor.append(%Token{
-      lexeme: lexeme,
-      type: type,
-      row: cursor.row,
-      col: cursor.col
-    })
+  def is_quote(ch) do
+    ch == ~s/"/
   end
+
+  # defp is_two_char_operator(["!" | ["=" | _]]), do: true
+  # defp is_two_char_operator(["=" | ["=" | _]]), do: true
+  # defp is_two_char_operator(_), do: false
 end
