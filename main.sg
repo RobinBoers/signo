@@ -1,5 +1,5 @@
 (let meaningOfTheUniverse 42)
-(let myAccountBalance 3.99)
+(let myAccountBalance "nothing, loser!")
 (let wowisthispossible 69420)
 
 (def double (n) (* 2 n))

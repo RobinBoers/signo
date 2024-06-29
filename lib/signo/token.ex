@@ -4,7 +4,7 @@ defmodule Signo.Token do
   """
   use TypedStruct
 
-  alias Signo.Location
+  alias Signo.Position
 
   typedstruct enforce: true do
     @typedoc """
@@ -36,13 +36,13 @@ defmodule Signo.Token do
   """
   @type literal :: integer() | float() | boolean()
 
-  @spec new(type(), String.t(), Location.t()) :: t()
-  def new(type, lexeme, loc) do
+  @spec new(type(), String.t(), Position.t()) :: t()
+  def new(type, lexeme, pos) do
     %__MODULE__{
       type: type,
       lexeme: lexeme,
-      row: loc.row,
-      col: loc.col
+      row: pos.row,
+      col: pos.col
     }
   end
 end

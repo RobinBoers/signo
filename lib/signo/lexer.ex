@@ -1,23 +1,24 @@
 defmodule Signo.Lexer do
   @moduledoc false
 
-  alias Signo.Location
+  alias Signo.Position
   alias Signo.Token
 
-  import Signo.Location, only: [increment: 2]
+  import Signo.Position, only: [increment: 2]
 
   defmodule LexingError do
     @moduledoc """
     Raised when the compiler finds an unexpected lexeme while
     tokenizing the source code.
     """
-    defexception [:message, :token]
+    defexception [:message, :lexeme, :position]
 
     @impl true
-    def exception(token) do
+    def exception(lexeme: lexeme, position: pos) do
       %__MODULE__{
-        message: "unexpected #{token.lexeme}",
-        token: token
+        message: "unexpected #{lexeme} at #{pos}",
+        lexeme: lexeme,
+        position: pos
       }
     end
   end
@@ -33,33 +34,32 @@ defmodule Signo.Lexer do
     |> lex()
   end
 
-  @spec lex([String.grapheme()], [Token.t()], Location.t()) :: [Token.t()]
-  defp lex(chars, tokens \\ [], loc \\ %Location{})
+  @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
+  defp lex(chars, tokens \\ [], pos \\ %Position{})
 
-  defp lex(_chars = [], tokens, loc) do
-    Enum.reverse([Token.new(:eof, "", loc) | tokens])
+  defp lex(_chars = [], tokens, pos) do
+    Enum.reverse([Token.new(:eof, "", pos) | tokens])
   end
 
-  defp lex(chars = [ch | rest], tokens, loc) do
+  defp lex(chars = [ch | rest], tokens, pos) do
     cond do
-      is_whitespace(ch) -> lex(rest, tokens, loc)
-      is_letter(ch) -> read_identifier(chars, tokens, loc)
-      is_digit(ch) -> read_number(chars, tokens, loc)
-      is_quote(ch) -> read_string(chars, tokens, loc)
-      true -> read_next_char(chars, tokens, loc)
+      is_whitespace(ch) -> lex(rest, tokens, pos)
+      is_letter(ch) -> read_identifier(chars, tokens, pos)
+      is_digit(ch) -> read_number(chars, tokens, pos)
+      is_quote(ch) -> read_string(chars, tokens, pos)
+      true -> read_next_char(chars, tokens, pos)
     end
   end
 
-  defp read_identifier(chars, tokens, loc) do
+  defp read_identifier(chars, tokens, pos) do
     {collected, rest} = Enum.split_while(chars, &is_letter/1)
     lexeme = Enum.join(collected)
-    type = lookup_keyword(lexeme)
 
-    token = Token.new(type, lexeme, loc)
-    lex(rest, [token | tokens], increment(loc, collected))
+    token = Token.new(ckeck_keyword(lexeme), lexeme, pos)
+    lex(rest, [token | tokens], increment(pos, collected))
   end
 
-  defp lookup_keyword(lexeme) do
+  defp ckeck_keyword(lexeme) do
     if lexeme in @keywords do
       {:keyword, String.to_existing_atom(lexeme)}
     else
@@ -67,46 +67,46 @@ defmodule Signo.Lexer do
     end
   end
 
-  defp read_number(chars, tokens, loc) do
+  defp read_number(chars, tokens, pos) do
     {collected, rest} = Enum.split_while(chars, &is_digit/1)
     lexeme = Enum.join(collected)
     {literal, ""} = Integer.parse(lexeme)
 
-    token = Token.new({:literal, literal}, lexeme, loc)
-    lex(rest, [token | tokens], increment(loc, collected))
+    token = Token.new({:literal, literal}, lexeme, pos)
+    lex(rest, [token | tokens], increment(pos, collected))
   end
 
-  def read_string([_quote | rest], tokens, loc) do
+  def read_string([_quote | rest], tokens, pos) do
     {collected, [_quote | rest]} = Enum.split_while(rest, &(!is_quote(&1)))
     literal = Enum.join(collected)
-    token = Token.new({:literal, literal}, "'#{literal}'", loc)
+    token = Token.new({:literal, literal}, "'#{literal}'", pos)
 
     # add 2x `nil` to account for the quotes
-    lex(rest, [token | tokens], increment(loc, [nil, nil] ++ collected))
+    lex(rest, [token | tokens], increment(pos, [nil, nil] ++ collected))
   end
 
-  def read_next_char(_chars = [ch | rest], tokens, loc) do
+  def read_next_char(_chars = [ch | rest], tokens, pos) do
     token =
       case ch do
-        "(" -> Token.new(:opening, ch, loc)
-        ")" -> Token.new(:closing, ch, loc)
-        "=" -> Token.new(:symbol, ch, loc)
-        "-" -> Token.new(:symbol, ch, loc)
-        "*" -> Token.new(:symbol, ch, loc)
-        "/" -> Token.new(:symbol, ch, loc)
-        "^" -> Token.new(:symbol, ch, loc)
-        "%" -> Token.new(:symbol, ch, loc)
-        "&" -> Token.new(:symbol, ch, loc)
-        "@" -> Token.new(:symbol, ch, loc)
-        "#" -> Token.new(:symbol, ch, loc)
-        "!" -> Token.new(:symbol, ch, loc)
-        "~" -> Token.new(:symbol, ch, loc)
-        "<" -> Token.new(:symbol, ch, loc)
-        ">" -> Token.new(:symbol, ch, loc)
-        _ -> Token.new(:illegal, ch, loc)
+        "(" -> Token.new(:opening, ch, pos)
+        ")" -> Token.new(:closing, ch, pos)
+        "=" -> Token.new(:symbol, ch, pos)
+        "-" -> Token.new(:symbol, ch, pos)
+        "*" -> Token.new(:symbol, ch, pos)
+        "/" -> Token.new(:symbol, ch, pos)
+        "^" -> Token.new(:symbol, ch, pos)
+        "%" -> Token.new(:symbol, ch, pos)
+        "&" -> Token.new(:symbol, ch, pos)
+        "@" -> Token.new(:symbol, ch, pos)
+        "#" -> Token.new(:symbol, ch, pos)
+        "!" -> Token.new(:symbol, ch, pos)
+        "~" -> Token.new(:symbol, ch, pos)
+        "<" -> Token.new(:symbol, ch, pos)
+        ">" -> Token.new(:symbol, ch, pos)
+        _ -> raise LexingError, lexeme: ch, position: pos
       end
 
-    lex(rest, [token | tokens], increment(loc, ch))
+    lex(rest, [token | tokens], increment(pos, ch))
   end
 
   defp is_whitespace(ch) do
