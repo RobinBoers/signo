@@ -10,7 +10,7 @@ defmodule Signo.Location do
   end
 
   @spec increment(t(), [String.grapheme()] | String.grapheme()) :: t()
-  def increment(loc, lexeme) do
+  def increment(loc, lexeme) when is_list(lexeme) do
     Enum.reduce(lexeme, loc, &increment(&2, &1))
   end
 

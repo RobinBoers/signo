@@ -37,7 +37,7 @@ defmodule Signo.Lexer do
   defp lex(chars, tokens \\ [], loc \\ %Location{})
 
   defp lex(_chars = [], tokens, loc) do
-    Enum.reverse([Token.new(:eof, loc) | tokens])
+    Enum.reverse([Token.new(:eof, "", loc) | tokens])
   end
 
   defp lex(chars = [ch | rest], tokens, loc) do
@@ -50,13 +50,13 @@ defmodule Signo.Lexer do
     end
   end
 
-  defp read_identifier(chars, tokens) do
+  defp read_identifier(chars, tokens, loc) do
     {collected, rest} = Enum.split_while(chars, &is_letter/1)
     lexeme = Enum.join(collected)
     type = lookup_keyword(lexeme)
 
     token = Token.new(type, lexeme, loc)
-    tokenize(rest, [token | tokens], increment(loc, collected))
+    lex(rest, [token | tokens], increment(loc, collected))
   end
 
   defp lookup_keyword(lexeme) do
@@ -67,22 +67,22 @@ defmodule Signo.Lexer do
     end
   end
 
-  defp read_number(chars, tokens) do
+  defp read_number(chars, tokens, loc) do
     {collected, rest} = Enum.split_while(chars, &is_digit/1)
     lexeme = Enum.join(collected)
     {literal, ""} = Integer.parse(lexeme)
 
     token = Token.new({:literal, literal}, lexeme, loc)
-    tokenize(rest, [token | tokens], increment(loc, collected))
+    lex(rest, [token | tokens], increment(loc, collected))
   end
 
-  def read_string([_quote | rest], tokens) do
+  def read_string([_quote | rest], tokens, loc) do
     {collected, [_quote | rest]} = Enum.split_while(rest, &(!is_quote(&1)))
     literal = Enum.join(collected)
     token = Token.new({:literal, literal}, "'#{literal}'", loc)
 
     # add 2x `nil` to account for the quotes
-    tokenize(rest, [token | tokens], increment(loc, [nil, nil] ++ collected))
+    lex(rest, [token | tokens], increment(loc, [nil, nil] ++ collected))
   end
 
   def read_next_char(_chars = [ch | rest], tokens, loc) do
@@ -106,7 +106,7 @@ defmodule Signo.Lexer do
         _ -> Token.new(:illegal, ch, loc)
       end
 
-    tokenize(rest, [token | tokens], increment(loc, ch))
+    lex(rest, [token | tokens], increment(loc, ch))
   end
 
   defp is_whitespace(ch) do
