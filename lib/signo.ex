@@ -15,24 +15,77 @@ defmodule Signo do
   - `let` assigns a variable.
   - `if` branches, like this: `(if CONDITION THEN ELSE)`.
   - `def` defines a function, like this: `(NAME ARGUMENTS BODY)`.
+
+  ## Usage
+
+  You'll mainly be using `compile_file!/1` and `compile_source!/1`, or
+  a CLI abstraction of them, for compiling and interpreting your Signo source code.
+
+  However, for more advanced usecases, we also expose individual compiler steps,
+  such as `lex!/1`, `parse!/1`.
   """
 
   alias Signo.Lexer
+  alias Signo.Parser
 
-  def main(filename \\ "main.sg") do
-    filename
+  @doc false
+  def main(path \\ "main.sg"), do: compile_file!(path)
+
+  @doc """
+  Compiles and evaluates a Signo source file.
+
+  ## Examples
+
+      iex> Signo.compile_file!("./main.sg")
+      hello, world!
+      :ok
+
+  """
+  @spec compile_file!(Path.t()) :: :ok
+  def compile_file!(path) do
+    path
     |> File.read!()
-    |> lex!()
+    |> lex!(path)
+    |> parse!()
   end
 
   @doc """
-  Converts a string containing valid Signo source code into
+  Compiles and evaluates a string of Signo source code.
+
+  ## Examples
+
+      iex> Signo.compile_source!("(print 69)")
+      69
+      :ok
+
+  """
+  @spec compile_source!(String.t()) :: :ok
+  def compile_source!(source) do
+    source
+    |> lex!()
+    |> parse!()
+  end
+
+  @doc """
+  Lexes a string containing valid Signo source code into
   a list of `Signo.Token`s.
 
-  Raises `Signo.LexingError` when encountering unknown characters.
+  Raises `Signo.Lexer.LexingError` when encountering unknown characters.
 
   Multiple lines are supported.
   """
   @spec lex!(String.t()) :: [Token.t()]
   defdelegate lex!(source), to: Lexer
+
+  @doc false
+  @spec lex!(String.t(), Path.t()) :: [Token.t()]
+  defdelegate lex!(source, path), to: Lexer
+
+  @doc """
+  Parses a list of `Signo.Token`s into a executable AST.
+
+  Raises `Signo.ParseError` when encountering unexpected tokens.
+  """
+  @spec parse!([Token.t()]) :: :ok
+  defdelegate parse!(tokens), to: Parser
 end
