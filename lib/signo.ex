@@ -30,9 +30,29 @@ defmodule Signo do
   alias Signo.Token
   alias Signo.Lexer
   alias Signo.Parser
+  alias Signo.AST
+  alias Signo.REPL
 
   @doc false
   def main(path \\ "main.sg"), do: compile_file!(path)
+
+  @spec version() :: String.t()
+  def version do
+    Mix.Project.config()[:version]
+  end
+
+  @doc """
+  Starts a REPL (read-evaluate-print loop) session.
+
+  ## Examples
+
+      iex> Signo.repl()
+      sig> (print "hello world")
+      hello world
+      sig>
+
+  """
+  defdelegate repl, to: REPL
 
   @doc """
   Compiles and evaluates a Signo source file.

@@ -11,3 +11,7 @@ check() {
 docs() {
   mix docs && open doc/index.html
 }
+
+repl() {
+  mix repl
+}
