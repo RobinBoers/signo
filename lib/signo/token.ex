@@ -1,6 +1,6 @@
 defmodule Signo.Token do
   @moduledoc """
-  Struct representing a token.
+  A token.
   """
   use TypedStruct
 

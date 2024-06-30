@@ -12,9 +12,6 @@ defmodule Signo.Position do
     field :col, non_neg_integer(), default: 1
   end
 
-  @doc """
-  Constructs a new `Signo.Position`.
-  """
   @spec new(location()) :: t()
   def new(path) when is_binary(path) or path == :runtime do
     %__MODULE__{path: path}

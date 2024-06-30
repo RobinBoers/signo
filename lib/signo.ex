@@ -2,19 +2,21 @@ defmodule Signo do
   @moduledoc """
   Signo is a Lisp-like language. That means it has two core concepts:
 
-  - Atomics, which can be subdivided into three categories:
+  - Atomics, which can be subdivided into two categories:
 
     - Literals, such as `100`, `1.0`, `true`, `"hello world"` and `3.0e10`.
     - References to previously defined variables or functions.
-    - Operators: `<`, `<=`, `>`, `>=`, `==`, `!==`, `and`, `or`, `nor`, `xor`, `not`.
 
-  - Lists, such as `("hello", 100, "worlds")`.
+  - Lists, such as `("hello" 100 "worlds")`. Notice the fact that lists are space-seperated.
 
   As you can see, both of these are expressions. Because, in Signo, everything is an expression. A list can evaluate to another value when it starts with one of the following keywords:
 
-  - `let` assigns a variable.
+  - `let` assigns a variable, like this: `(let NAME VALUE)`
   - `if` branches, like this: `(if CONDITION THEN ELSE)`.
   - `def` defines a function, like this: `(NAME ARGUMENTS BODY)`.
+
+  Furthermore, Signo is entirely immutable. While a variable can be reassigned within scope,
+  a reference to a variable can never be mutated and then used elsewhere.
 
   ## Usage
 

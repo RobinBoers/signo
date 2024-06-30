@@ -7,3 +7,7 @@ build() {
 check() {
   mix check --no-retry
 }
+
+docs() {
+  mix docs && open doc/index.html
+}
