@@ -18,8 +18,7 @@ defmodule Signo.Token do
 
     field :type, type() | :error
     field :lexeme, String.t()
-    field :row, non_neg_integer()
-    field :col, non_neg_integer()
+    field :position, Position.t()
   end
 
   @type type ::
@@ -41,8 +40,7 @@ defmodule Signo.Token do
     %__MODULE__{
       type: type,
       lexeme: lexeme,
-      row: pos.row,
-      col: pos.col
+      position: pos
     }
   end
 end
