@@ -13,5 +13,5 @@ docs() {
 }
 
 repl() {
-  mix repl
+  mix run -e "Signo.repl()"
 }

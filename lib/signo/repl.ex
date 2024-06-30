@@ -4,8 +4,18 @@ defmodule Signo.REPL do
   alias Signo.Env
   import IO.ANSI
 
+  @spec repl() :: no_return()
+  def repl do
+    IO.puts(erlang_info())
+    IO.puts("Interactive Signo v#{Signo.version()} (#{elixir_info()})")
+    repl(%{})
+  end
+
+  defp erlang_info, do: :erlang.system_info(:system_version)
+  defp elixir_info, do: "Elixir/#{System.version()}"
+
   @spec repl(Env.t(), pos_integer()) :: no_return()
-  def repl(env \\ %{}, ln \\ 1) do
+  defp repl(env, ln \\ 1) do
     env
     |> read(ln)
     |> eval()
