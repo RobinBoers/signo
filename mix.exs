@@ -22,6 +22,9 @@ defmodule Signo.MixProject do
   defp deps, do: [
     {:typed_struct, "~> 0.3.0"},
     {:ex_doc, "~> 0.31", only: :dev, runtime: false},
+    {:credo, ">= 0.0.0", only: :dev, runtime: false},
+    {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
+    {:ex_check, "~> 0.14.0", only: :dev, runtime: false}
   ]
 
   defp docs, do: [

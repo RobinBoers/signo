@@ -22,18 +22,18 @@ defmodule Signo.Token do
   end
 
   @type type ::
-    :eof
-    | :opening
-    | :closing
-    | :symbol
-    | {:literal, literal()}
-    | {:keyword, :if | :let | :def}
+          :eof
+          | :opening
+          | :closing
+          | :symbol
+          | {:literal, literal()}
+          | {:keyword, :if | :let | :def}
 
   @typedoc """
   The value of the literal as an elixir `t:term/0`.
   Example: `30_000`
   """
-  @type literal :: integer() | float() | boolean()
+  @type literal :: binary() | integer() | float() | boolean()
 
   @spec new(type(), String.t(), Position.t()) :: t()
   def new(type, lexeme, pos) do

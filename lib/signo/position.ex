@@ -35,7 +35,7 @@ defmodule Signo.Position do
 end
 
 defimpl String.Chars, for: Signo.Position do
-  def to_string(%Signo.Position{} = pos) do
+  def to_string(pos = %Signo.Position{}) do
     "#{pos.path}:#{pos.row}:#{pos.col}"
   end
 end

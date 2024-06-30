@@ -24,15 +24,24 @@ defmodule Signo.Lexer do
   end
 
   @keywords ["if", "let", "def"]
+  @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
 
-  @spec lex!(String.t(), Path.t()) :: [Token.t()]
+  @spec lex!(String.t(), Position.location()) :: [Token.t()]
   def lex!(source, path \\ :runtime) do
     source
     |> String.replace("\n\r", "\n")
     |> String.graphemes()
     |> lex(Position.new(path))
   end
+
+  defguardp is_whitespace(ch) when ch in @whitespace
+  defguardp is_special(ch) when ch in @specials
+  defguardp is_lower(ch) when "a" <= ch and ch <= "z"
+  defguardp is_upper(ch) when "A" <= ch and ch <= "Z"
+  defguardp is_letter(ch) when is_lower(ch) or is_upper(ch) or is_special(ch)
+  defguardp is_digit(ch) when "0" <= ch and ch <= "9"
+  defguardp is_quote(ch) when ch == "'"
 
   @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
   defp lex(chars, tokens \\ [], pos)
@@ -94,26 +103,6 @@ defmodule Signo.Lexer do
       end
 
     lex(rest, [token | tokens], inc(pos, ch))
-  end
-
-  defp is_whitespace(ch) do
-    ch in ["\n", "\t", "\v", "\r", " "]
-  end
-
-  defp is_letter(ch) do
-    is_lower(ch) or is_upper(ch) or is_special(ch)
-  end
-
-  defp is_lower(ch), do: "a" <= ch && ch <= "z"
-  defp is_upper(ch), do: "A" <= ch && ch <= "Z"
-  defp is_special(ch), do: ch in @specials
-
-  defp is_digit(ch) do
-    "0" <= ch && ch <= "9"
-  end
-
-  def is_quote(ch) do
-    ch == "'"
   end
 
   defp inc(pos, c) when is_list(c), do: increment(pos, c)

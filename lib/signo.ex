@@ -25,6 +25,7 @@ defmodule Signo do
   such as `lex!/1`, `parse!/1`.
   """
 
+  alias Signo.Token
   alias Signo.Lexer
   alias Signo.Parser
 
