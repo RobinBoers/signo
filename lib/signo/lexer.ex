@@ -6,7 +6,7 @@ defmodule Signo.Lexer do
 
   import Signo.Position, only: [increment: 2]
 
-  defmodule LexingError do
+  defmodule LexError do
     @moduledoc """
     Raised when the compiler finds an unexpected character or
     lexeme while tokenizing the source code.
@@ -42,6 +42,7 @@ defmodule Signo.Lexer do
   defguardp is_letter(ch) when is_lower(ch) or is_upper(ch) or is_special(ch)
   defguardp is_digit(ch) when "0" <= ch and ch <= "9"
   defguardp is_quote(ch) when ch == "'"
+  defguardp is_dot(ch) when ch == "."
 
   @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
   defp lex(chars, tokens \\ [], pos)
@@ -77,12 +78,26 @@ defmodule Signo.Lexer do
   end
 
   defp read_number(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &is_digit/1)
+    {collected, rest} = collect_number(chars)
     lexeme = Enum.join(collected)
-    {literal, ""} = Integer.parse(lexeme)
+    {literal, ""} = parse_number(lexeme)
 
     token = Token.new({:literal, literal}, lexeme, pos)
     lex(rest, [token | tokens], inc(pos, collected))
+  end
+
+  defp collect_number(chars = [ch | rest], collected \\ []) do
+    cond do
+      is_dot(ch) and "." in collected -> {Enum.reverse(collected), chars}
+      is_digit(ch) or is_dot(ch) -> collect_number(rest, [ch | collected])
+      true -> {Enum.reverse(collected), rest}
+    end
+  end
+
+  defp parse_number(lexeme) do
+    if String.contains?(lexeme, "."),
+      do: Float.parse(lexeme),
+      else: Integer.parse(lexeme)
   end
 
   defp read_string([_quote | rest], tokens, pos) do
@@ -99,7 +114,7 @@ defmodule Signo.Lexer do
       case ch do
         "(" -> Token.new(:opening, ch, pos)
         ")" -> Token.new(:closing, ch, pos)
-        _ -> raise LexingError, lexeme: ch, position: pos
+        _ -> raise LexError, lexeme: ch, position: pos
       end
 
     lex(rest, [token | tokens], inc(pos, ch))

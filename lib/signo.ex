@@ -71,7 +71,7 @@ defmodule Signo do
   Lexes a string containing valid Signo source code into
   a list of `Signo.Token`s.
 
-  Raises `Signo.Lexer.LexingError` when encountering unknown characters.
+  Raises `Signo.Lexer.LexError` when encountering unknown characters.
 
   Multiple lines are supported.
   """
