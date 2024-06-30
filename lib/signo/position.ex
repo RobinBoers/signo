@@ -4,15 +4,15 @@ defmodule Signo.Position do
   """
   use TypedStruct
 
-  @type location :: Path.t() | :runtime
+  @type path :: Path.t() | :runtime
 
   typedstruct enforce: true do
-    field :path, location(), default: :runtime
+    field :path, path(), default: :runtime
     field :row, non_neg_integer(), default: 1
     field :col, non_neg_integer(), default: 1
   end
 
-  @spec new(location()) :: t()
+  @spec new(path()) :: t()
   def new(path) when is_binary(path) or path == :runtime do
     %__MODULE__{path: path}
   end

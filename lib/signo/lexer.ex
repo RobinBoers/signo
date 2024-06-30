@@ -4,8 +4,6 @@ defmodule Signo.Lexer do
   alias Signo.Position
   alias Signo.Token
 
-  import Signo.Position, only: [increment: 2]
-
   defmodule LexError do
     @moduledoc """
     Raised when the compiler finds an unexpected character or
@@ -27,14 +25,6 @@ defmodule Signo.Lexer do
   @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
 
-  @spec lex!(String.t(), Position.location()) :: [Token.t()]
-  def lex!(source, path \\ :runtime) do
-    source
-    |> String.replace("\n\r", "\n")
-    |> String.graphemes()
-    |> lex(Position.new(path))
-  end
-
   defguardp is_whitespace(ch) when ch in @whitespace
   defguardp is_special(ch) when ch in @specials
   defguardp is_lower(ch) when "a" <= ch and ch <= "z"
@@ -43,6 +33,14 @@ defmodule Signo.Lexer do
   defguardp is_digit(ch) when "0" <= ch and ch <= "9"
   defguardp is_quote(ch) when ch == "'"
   defguardp is_dot(ch) when ch == "."
+
+  @spec lex!(String.t(), Position.path()) :: [Token.t()]
+  def lex!(source, path \\ :runtime) do
+    source
+    |> String.replace("\n\r", "\n")
+    |> String.graphemes()
+    |> lex(Position.new(path))
+  end
 
   @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
   defp lex(chars, tokens \\ [], pos)
@@ -120,10 +118,10 @@ defmodule Signo.Lexer do
     lex(rest, [token | tokens], inc(pos, ch))
   end
 
-  defp inc(pos, c) when is_list(c), do: increment(pos, c)
-  defp inc(pos, c) when is_binary(c), do: increment(pos, c)
+  defp inc(pos, c) when is_list(c), do: Position.increment(pos, c)
+  defp inc(pos, c) when is_binary(c), do: Position.increment(pos, c)
 
   defp inc(pos, amount) when is_number(amount) do
-    Enum.reduce(1..amount, pos, &increment(&2, &1))
+    Enum.reduce(1..amount, pos, &Position.increment(&2, &1))
   end
 end
