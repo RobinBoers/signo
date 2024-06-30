@@ -8,8 +8,8 @@ defmodule Signo.Lexer do
 
   defmodule LexingError do
     @moduledoc """
-    Raised when the compiler finds an unexpected lexeme while
-    tokenizing the source code.
+    Raised when the compiler finds an unexpected character or
+    lexeme while tokenizing the source code.
     """
     defexception [:message, :lexeme, :position]
 
@@ -24,18 +24,18 @@ defmodule Signo.Lexer do
   end
 
   @keywords ["if", "let", "def"]
-  @special ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
+  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
 
-  @spec lex!(String.t()) :: [Token.t()]
-  def lex!(source) do
+  @spec lex!(String.t(), Path.t()) :: [Token.t()]
+  def lex!(source, path \\ :runtime) do
     source
     |> String.replace("\n\r", "\n")
     |> String.graphemes()
-    |> lex()
+    |> lex(Position.new(path))
   end
 
   @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
-  defp lex(chars, tokens \\ [], pos \\ %Position{})
+  defp lex(chars, tokens \\ [], pos)
 
   defp lex(_chars = [], tokens, pos) do
     Enum.reverse([Token.new(:eof, "", pos) | tokens])
@@ -43,7 +43,7 @@ defmodule Signo.Lexer do
 
   defp lex(chars = [ch | rest], tokens, pos) do
     cond do
-      is_whitespace(ch) -> lex(rest, tokens, pos)
+      is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
       is_letter(ch) -> read_identifier(chars, tokens, pos)
       is_digit(ch) -> read_number(chars, tokens, pos)
       is_quote(ch) -> read_string(chars, tokens, pos)
@@ -56,7 +56,7 @@ defmodule Signo.Lexer do
     lexeme = Enum.join(collected)
 
     token = Token.new(ckeck_keyword(lexeme), lexeme, pos)
-    lex(rest, [token | tokens], increment(pos, collected))
+    lex(rest, [token | tokens], inc(pos, collected))
   end
 
   defp ckeck_keyword(lexeme) do
@@ -73,40 +73,27 @@ defmodule Signo.Lexer do
     {literal, ""} = Integer.parse(lexeme)
 
     token = Token.new({:literal, literal}, lexeme, pos)
-    lex(rest, [token | tokens], increment(pos, collected))
+    lex(rest, [token | tokens], inc(pos, collected))
   end
 
-  def read_string([_quote | rest], tokens, pos) do
+  defp read_string([_quote | rest], tokens, pos) do
     {collected, [_quote | rest]} = Enum.split_while(rest, &(!is_quote(&1)))
     literal = Enum.join(collected)
     token = Token.new({:literal, literal}, "'#{literal}'", pos)
 
-    # add 2x `nil` to account for the quotes
-    lex(rest, [token | tokens], increment(pos, [nil, nil] ++ collected))
+    # inc 2 more to account for the quotes
+    lex(rest, [token | tokens], pos |> inc(collected) |> inc(2))
   end
 
-  def read_next_char(_chars = [ch | rest], tokens, pos) do
+  defp read_next_char(_chars = [ch | rest], tokens, pos) do
     token =
       case ch do
         "(" -> Token.new(:opening, ch, pos)
         ")" -> Token.new(:closing, ch, pos)
-        "=" -> Token.new(:symbol, ch, pos)
-        "-" -> Token.new(:symbol, ch, pos)
-        "*" -> Token.new(:symbol, ch, pos)
-        "/" -> Token.new(:symbol, ch, pos)
-        "^" -> Token.new(:symbol, ch, pos)
-        "%" -> Token.new(:symbol, ch, pos)
-        "&" -> Token.new(:symbol, ch, pos)
-        "@" -> Token.new(:symbol, ch, pos)
-        "#" -> Token.new(:symbol, ch, pos)
-        "!" -> Token.new(:symbol, ch, pos)
-        "~" -> Token.new(:symbol, ch, pos)
-        "<" -> Token.new(:symbol, ch, pos)
-        ">" -> Token.new(:symbol, ch, pos)
         _ -> raise LexingError, lexeme: ch, position: pos
       end
 
-    lex(rest, [token | tokens], increment(pos, ch))
+    lex(rest, [token | tokens], inc(pos, ch))
   end
 
   defp is_whitespace(ch) do
@@ -119,13 +106,20 @@ defmodule Signo.Lexer do
 
   defp is_lower(ch), do: "a" <= ch && ch <= "z"
   defp is_upper(ch), do: "A" <= ch && ch <= "Z"
-  defp is_special(ch), do: ch in @special
+  defp is_special(ch), do: ch in @specials
 
   defp is_digit(ch) do
     "0" <= ch && ch <= "9"
   end
 
   def is_quote(ch) do
-    ch == ~s/"/
+    ch == "'"
+  end
+
+  defp inc(pos, c) when is_list(c), do: increment(pos, c)
+  defp inc(pos, c) when is_binary(c), do: increment(pos, c)
+
+  defp inc(pos, amount) when is_number(amount) do
+    Enum.reduce(1..amount, pos, &increment(&2, &1))
   end
 end
