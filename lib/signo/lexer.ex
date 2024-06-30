@@ -35,7 +35,7 @@ defmodule Signo.Lexer do
   defguardp is_dot(ch) when ch == "."
 
   @spec lex!(String.t(), Position.path()) :: [Token.t()]
-  def lex!(source, path \\ :runtime) do
+  def lex!(source, path \\ :nofile) do
     source
     |> String.replace("\n\r", "\n")
     |> String.graphemes()

@@ -4,16 +4,16 @@ defmodule Signo.Position do
   """
   use TypedStruct
 
-  @type path :: Path.t() | :runtime
+  @type path :: Path.t() | :nofile
 
   typedstruct enforce: true do
-    field :path, path(), default: :runtime
+    field :path, path()
     field :row, non_neg_integer(), default: 1
     field :col, non_neg_integer(), default: 1
   end
 
   @spec new(path()) :: t()
-  def new(path) when is_binary(path) or path == :runtime do
+  def new(path) when is_binary(path) or path == :nofile do
     %__MODULE__{path: path}
   end
 
