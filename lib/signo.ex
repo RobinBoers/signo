@@ -50,6 +50,7 @@ defmodule Signo do
     |> File.read!()
     |> lex!(path)
     |> parse!()
+    |> evaluate!()
   end
 
   @doc """
@@ -67,6 +68,7 @@ defmodule Signo do
     source
     |> lex!()
     |> parse!()
+    |> evaluate!()
   end
 
   @doc """
@@ -87,8 +89,17 @@ defmodule Signo do
   @doc """
   Parses a list of `Signo.Token`s into a executable AST.
 
-  Raises `Signo.ParseError` when encountering unexpected tokens.
+  Raises `Signo.Parser.ParseError` when encountering unexpected tokens.
   """
-  @spec parse!([Token.t()]) :: :ok
+  @spec parse!([Token.t()]) :: AST.t()
   defdelegate parse!(tokens), to: Parser
+
+  @doc """
+  Evaluates a `Signo.AST` into a `Signo.Env` containing final
+  global scope, and executes any side-effects.
+
+  Raises `Signo.TypeError` when encountering type errors.
+  """
+  @spec evaluate!(AST.t()) :: :ok
+  def evaluate!(_ast), do: :ok
 end
