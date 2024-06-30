@@ -16,8 +16,8 @@ defmodule Signo.Parser do
     end
   end
 
-  def parse!(_tokens) do
-    # dbg(tokens)
+  def parse!(tokens) do
+    dbg(tokens)
     :ok
   end
 end

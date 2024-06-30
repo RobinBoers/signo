@@ -1,0 +1,9 @@
+#!/bin/bash
+
+build() {
+  mix run -e "Signo.main()"
+}
+
+check() {
+  mix check --no-retry
+}
