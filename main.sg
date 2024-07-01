@@ -5,5 +5,8 @@
 
 (def double (n) (* 2 n))
 (let result (double 8))
+
 (if (== result 16) (print 'it works!') (print 'it doesnt!'))
 (if (not #false) (print 'hello'))
+
+((lambda (n) (print n)) 'hello world!')

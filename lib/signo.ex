@@ -4,7 +4,7 @@ defmodule Signo do
 
   - Atomics, which can be subdivided into two categories:
 
-    - Literals, such as `100`, `1.0`, `true`, `"hello world"` and `3.0e10`.
+    - Literals, such as `100`, `1.0`, `#true`, `"hello world"` and `#ok`.
     - References to previously defined variables or functions.
 
   - Lists, such as `("hello" 100 "worlds")`. Notice the fact that lists are space-seperated.
