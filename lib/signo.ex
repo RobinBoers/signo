@@ -123,5 +123,8 @@ defmodule Signo do
   Raises `Signo.TypeError` when encountering type errors.
   """
   @spec evaluate!(AST.t()) :: :ok
-  def evaluate!(_ast), do: :ok
+  def evaluate!(ast) do
+    dbg(ast)
+    :ok
+  end
 end

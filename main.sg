@@ -1,8 +1,9 @@
 (let meaningOfTheUniverse 42)
 (let myAccountBalance 'nothing, loser!')
-(let wowisthispossible 69.420)
+(let iAmAnIdiot 69.420)
+(let thisIsTrue #true)
 
 (def double (n) (* 2 n))
 (let result (double 8))
-(if (== result 16) (print 'it Works!') (print 'it doesnt!'))
-(if (not false) (print 'hello'))
+(if (== result 16) (print 'it works!') (print 'it doesnt!'))
+(if (not #false) (print 'hello'))

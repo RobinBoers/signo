@@ -23,7 +23,7 @@ defmodule Signo.Lexer do
 
   @keywords ["if", "let", "def", "lambda"]
   @whitespace ["\n", "\t", "\v", "\r", " "]
-  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
+  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "~", "<", ">"]
 
   defguardp is_whitespace(ch) when ch in @whitespace
   defguardp is_special(ch) when ch in @specials
@@ -32,6 +32,7 @@ defmodule Signo.Lexer do
   defguardp is_letter(ch) when is_lower(ch) or is_upper(ch) or is_special(ch)
   defguardp is_digit(ch) when "0" <= ch and ch <= "9"
   defguardp is_quote(ch) when ch == "'"
+  defguardp is_hash(ch) when ch == "#"
   defguardp is_dot(ch) when ch == "."
 
   @spec lex!(String.t(), Position.path()) :: [Token.t()]
@@ -52,11 +53,21 @@ defmodule Signo.Lexer do
   defp lex(chars = [ch | rest], tokens, pos) do
     cond do
       is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
+      is_hash(ch) -> read_atom(chars, tokens, pos)
       is_letter(ch) -> read_identifier(chars, tokens, pos)
       is_digit(ch) -> read_number(chars, tokens, pos)
       is_quote(ch) -> read_string(chars, tokens, pos)
       true -> read_next_char(chars, tokens, pos)
     end
+  end
+
+  defp read_atom(chars, tokens, pos) do
+    {collected, rest} = Enum.split_while(chars, &is_letter/1)
+    lexeme = Enum.join(collected)
+    literal = lexeme |> String.slice(1..-1) |> String.to_atom()
+
+    token = Token.new({:literal, literal}, lexeme, pos)
+    lex(rest, [token | tokens], inc(pos, collected))
   end
 
   defp read_identifier(chars, tokens, pos) do
