@@ -38,13 +38,23 @@ defmodule Signo.Env do
     %__MODULE__{parent: parent}
   end
 
-  @spec lookup(nil, AST.ref()) :: no_return()
-  def lookup(nil, ref) do
+  @spec assign(t(), AST.ref(), AST.expression()) :: t()
+  def assign(%__MODULE__{} = env, ref, value) do
+    %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
+  end
+
+  @spec populate(t(), [{AST.ref(), AST.expression()}]) :: t()
+  def populate(%__MODULE__{} = env, definitions) do
+    %__MODULE__{env | scope: Map.merge(env.scope, Map.new(definitions))}
+  end
+
+  @spec lookup!(nil, AST.ref()) :: no_return()
+  def lookup!(nil, ref) do
     raise ReferenceError, ref
   end
 
-  @spec lookup(t(), AST.ref()) :: AST.expression()
-  def lookup(env, ref) do
-    Map.get(env.scope, ref, lookup(env.parent, ref))
+  @spec lookup!(t(), AST.ref()) :: AST.expression()
+  def lookup!(%__MODULE__{} = env, ref) do
+    Map.get(env.scope, ref, lookup!(env.parent, ref))
   end
 end
