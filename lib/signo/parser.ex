@@ -58,7 +58,7 @@ defmodule Signo.Parser do
       %Token{type: {:keyword, :if}} when collected == [] ->
         {condition, rest} = parse_expression(rest)
         {then, rest} = parse_expression(rest)
-        {otherwise, rest} = parse_expression(rest)
+        {otherwise, rest} = maybe_parse_expression(rest)
         {_, rest} = expect(rest, :closing)
 
         {If.new(condition, then, otherwise), rest}
@@ -105,6 +105,13 @@ defmodule Signo.Parser do
         parse_arguments(rest, [Symbol.new(ref) | collected])
 
       _ -> raise ParseError, token
+    end
+  end
+
+  defp maybe_parse_expression(tokens = [token | _]) do
+    case token do
+      %Token{type: :closing} -> {List.new([]), tokens}
+      _ -> parse_expression(tokens)
     end
   end
 

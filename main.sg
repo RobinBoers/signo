@@ -5,4 +5,4 @@
 (def double (n) (* 2 n))
 (let result (double 8))
 (if (== result 16) (print 'it Works!') (print 'it doesnt!'))
-(if (not false) (print 'hello') (print 'will never reach'))
+(if (not false) (print 'hello'))
