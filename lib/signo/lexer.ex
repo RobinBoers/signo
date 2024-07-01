@@ -64,7 +64,7 @@ defmodule Signo.Lexer do
   defp read_atom(chars, tokens, pos) do
     {collected, rest} = Enum.split_while(chars, &is_letter/1)
     lexeme = Enum.join(collected)
-    literal = lexeme |> String.slice(1..-1) |> String.to_atom()
+    literal = lexeme |> String.slice(1..-1//1) |> String.to_atom()
 
     token = Token.new({:literal, literal}, lexeme, pos)
     lex(rest, [token | tokens], inc(pos, collected))
