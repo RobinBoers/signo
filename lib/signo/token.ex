@@ -27,7 +27,12 @@ defmodule Signo.Token do
           | :closing
           | :symbol
           | {:literal, literal()}
-          | {:keyword, :if | :let | :def | :lambda}
+          | {:keyword, kw()}
+
+  @typedoc """
+  A valid keyword.
+  """
+  @type kw :: :if | :let | :def | :lambda | :do
 
   @typedoc """
   The value of the literal as an elixir `t:term/0`.

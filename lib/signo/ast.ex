@@ -5,7 +5,8 @@ defmodule Signo.AST do
   use TypedStruct
 
   @type expression ::
-          __MODULE__.List.t()
+          __MODULE__.Call.t()
+          | __MODULE__.Block.t()
           | __MODULE__.Literal.t()
           | __MODULE__.Symbol.t()
           | __MODULE__.If.t()
@@ -18,9 +19,10 @@ defmodule Signo.AST do
     field :expressions, [expression()]
   end
 
-  defmodule List do
+  defmodule Call do
     @moduledoc """
-    A list of expressions.
+    A list of expressions that evaluates to a
+    procedure call.
     """
 
     typedstruct enforce: true do
@@ -30,6 +32,36 @@ defmodule Signo.AST do
     @spec new([AST.expression()]) :: t()
     def new(expressions) do
       %__MODULE__{expressions: expressions}
+    end
+  end
+
+  defmodule Block do
+    @moduledoc """
+    A list of expressions that evaluates to the
+    value of the last expression.
+    """
+
+    typedstruct enforce: true do
+      field :expressions, [AST.expression()]
+    end
+
+    @spec new([AST.expression()]) :: t()
+    def new(expressions) do
+      %__MODULE__{expressions: expressions}
+    end
+  end
+
+  defmodule Nil do
+    @moduledoc """
+    The `nil` type.
+    """
+
+    typedstruct do
+    end
+
+    @spec new() :: t()
+    def new do
+      %__MODULE__{}
     end
   end
 
@@ -48,6 +80,10 @@ defmodule Signo.AST do
     def new(value) do
       %__MODULE__{value: value}
     end
+
+    defimpl String.Chars do
+      def to_string(%@for{value: value}), do: "#{value}"
+    end
   end
 
   defmodule Symbol do
@@ -62,6 +98,10 @@ defmodule Signo.AST do
     @spec new(AST.ref()) :: t()
     def new(ref) do
       %__MODULE__{reference: ref}
+    end
+
+    defimpl String.Chars do
+      def to_string(%@for{reference: ref}), do: ref
     end
   end
 

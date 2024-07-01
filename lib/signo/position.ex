@@ -29,10 +29,10 @@ defmodule Signo.Position do
   @spec increment(t(), String.grapheme()) :: t()
   def increment(pos, "\n"), do: %__MODULE__{pos | row: pos.row + 1, col: 1}
   def increment(pos, _chr), do: %__MODULE__{pos | col: pos.col + 1}
-end
 
-defimpl String.Chars, for: Signo.Position do
-  def to_string(pos = %Signo.Position{}) do
-    "#{pos.path}:#{pos.row}:#{pos.col}"
+  defimpl String.Chars do
+    def to_string(pos = %@for{}) do
+      "#{pos.path}:#{pos.row}:#{pos.col}"
+    end
   end
 end

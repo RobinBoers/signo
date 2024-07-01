@@ -4,7 +4,7 @@ defmodule Signo.Parser do
   alias Signo.Token
 
   alias Signo.AST
-  alias Signo.AST.{Literal, Symbol, List, If, Let, Lambda}
+  alias Signo.AST.{Literal, Symbol, Call, Block, Nil, If, Let, Lambda}
 
   defmodule ParseError do
     @moduledoc """
@@ -52,8 +52,17 @@ defmodule Signo.Parser do
 
   defp parse_list(tokens = [token | rest], collected \\ []) do
     case token do
+      %Token{type: :closing} when collected == [] ->
+        {Nil.new(), rest}
+
       %Token{type: :closing} ->
-        {collected |> Enum.reverse() |> List.new(), rest}
+        {collected |> Enum.reverse() |> Call.new(), rest}
+
+      %Token{type: {:keyword, :do}} when collected == [] ->
+        {expression, rest} = parse_expression(rest)
+        # TODO(find 0 or more expressions)
+        expressions = [expression]
+        {Block.new(expressions), rest}
 
       %Token{type: {:keyword, :if}} when collected == [] ->
         {condition, rest} = parse_expression(rest)
@@ -111,7 +120,7 @@ defmodule Signo.Parser do
 
   defp maybe_parse_expression(tokens = [token | _]) do
     case token do
-      %Token{type: :closing} -> {List.new([]), tokens}
+      %Token{type: :closing} -> {Nil.new(), tokens}
       _ -> parse_expression(tokens)
     end
   end

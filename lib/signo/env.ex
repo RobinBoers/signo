@@ -33,19 +33,17 @@ defmodule Signo.Env do
     field :scope, scope(), default: %{}
   end
 
-  @spec new(t()) :: t()
-  def new(parent) do
-    %__MODULE__{parent: parent}
+  @spec new(t(), [{AST.ref(), AST.expression()}]) :: t()
+  def new(parent, definitions \\ []) do
+    %__MODULE__{
+      parent: parent,
+      scope: Map.new(definitions)
+    }
   end
 
   @spec assign(t(), AST.ref(), AST.expression()) :: t()
   def assign(%__MODULE__{} = env, ref, value) do
     %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
-  end
-
-  @spec populate(t(), [{AST.ref(), AST.expression()}]) :: t()
-  def populate(%__MODULE__{} = env, definitions) do
-    %__MODULE__{env | scope: Map.merge(env.scope, Map.new(definitions))}
   end
 
   @spec lookup!(nil, AST.ref()) :: no_return()
@@ -55,6 +53,8 @@ defmodule Signo.Env do
 
   @spec lookup!(t(), AST.ref()) :: AST.expression()
   def lookup!(%__MODULE__{} = env, ref) do
-    Map.get(env.scope, ref, lookup!(env.parent, ref))
+    if value = Map.get(env.scope, ref),
+      do: value,
+      else: lookup!(env.parent, ref)
   end
 end
