@@ -155,6 +155,6 @@ defmodule Signo do
   Primarily used to facilitate REPL-like programs, but can be applied
   in other contexts as well.
   """
-  @spec evaluate!(Env.t(), AST.t()) :: Env.t()
+  @spec evaluate!(AST.t(), Env.t()) :: Env.t()
   defdelegate evaluate!(env, ast), to: Interpreter
 end
