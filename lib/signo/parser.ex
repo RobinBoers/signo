@@ -104,7 +104,8 @@ defmodule Signo.Parser do
       %Token{type: :symbol, lexeme: ref} ->
         parse_arguments(rest, [Symbol.new(ref) | collected])
 
-      _ -> raise ParseError, token
+      _ ->
+        raise ParseError, token
     end
   end
 
@@ -120,7 +121,7 @@ defmodule Signo.Parser do
       {token, rest}
     else
       raise ParseError,
-        "expected #{type}, but got: '#{token.lexeme}' at #{token.position}"
+            "expected #{type}, but got: '#{token.lexeme}' at #{token.position}"
     end
   end
 end

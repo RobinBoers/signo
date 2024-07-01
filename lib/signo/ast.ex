@@ -4,7 +4,15 @@ defmodule Signo.AST do
   """
   use TypedStruct
 
-  @type expression :: List.t() | Literal.t() | Symbol.t() | If.t() | Def.t() | Let.t()
+  @type expression ::
+          __MODULE__.List.t()
+          | __MODULE__.Literal.t()
+          | __MODULE__.Symbol.t()
+          | __MODULE__.If.t()
+          | __MODULE__.Let.t()
+          | __MODULE__.Lambda.t()
+
+  @type ref :: String.t()
 
   typedstruct enforce: true do
     field :expressions, [expression()]
@@ -48,10 +56,10 @@ defmodule Signo.AST do
     """
 
     typedstruct enforce: true do
-      field :reference, String.t()
+      field :reference, AST.ref()
     end
 
-    @spec new(String.t()) :: t()
+    @spec new(AST.ref()) :: t()
     def new(ref) do
       %__MODULE__{reference: ref}
     end
@@ -84,11 +92,11 @@ defmodule Signo.AST do
     """
 
     typedstruct enforce: true do
-      field :reference, String.t()
+      field :reference, AST.ref()
       field :value, AST.expression()
     end
 
-    @spec new(String.t(), AST.expression()) :: t()
+    @spec new(AST.ref(), AST.expression()) :: t()
     def new(ref, value) do
       %__MODULE__{
         reference: ref,

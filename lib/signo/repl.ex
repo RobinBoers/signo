@@ -30,7 +30,7 @@ defmodule Signo.REPL do
   end
 
   defp eval({source, env}) do
-    Signo.compile_source!(source)
+    Signo.eval_source!(source)
     env
   end
 

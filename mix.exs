@@ -31,6 +31,9 @@ defmodule Signo.MixProject do
     main: "Signo",
     api_reference: false,
     authors: ["Robijntje"],
-    formatters: ["html"]
+    formatters: ["html"],
+    groups_for_modules: [
+      "AST": [~r/Signo.AST/]
+    ]
   ]
 end
