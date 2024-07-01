@@ -21,7 +21,7 @@ defmodule Signo.Lexer do
     end
   end
 
-  @keywords ["if", "let", "def"]
+  @keywords ["if", "let", "def", "lambda"]
   @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "&", "@", "#", "!", "~", "<", ">"]
 
@@ -68,11 +68,9 @@ defmodule Signo.Lexer do
   end
 
   defp ckeck_keyword(lexeme) do
-    if lexeme in @keywords do
-      {:keyword, String.to_existing_atom(lexeme)}
-    else
-      :symbol
-    end
+    if lexeme in @keywords,
+      do: {:keyword, String.to_atom(lexeme)},
+      else: :symbol
   end
 
   defp read_number(chars, tokens, pos) do
@@ -88,7 +86,7 @@ defmodule Signo.Lexer do
     cond do
       is_dot(ch) and "." in collected -> {Enum.reverse(collected), chars}
       is_digit(ch) or is_dot(ch) -> collect_number(rest, [ch | collected])
-      true -> {Enum.reverse(collected), rest}
+      true -> {Enum.reverse(collected), chars}
     end
   end
 
