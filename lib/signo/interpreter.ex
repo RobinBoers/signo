@@ -60,36 +60,40 @@ defmodule Signo.Interpreter do
     {empty, env}
   end
 
-  defp eval(%If{} = branch, env) do
-    in_scoped(env, fn env ->
-      {value, env} = eval(branch.condition, env)
-
-      if truthy?(value),
-        do: eval(branch.then, env),
-        else: eval(branch.else, env)
-    end)
-  end
-
   defp eval(%Block{expressions: expressions}, env) do
     {expressions, _} = eval_list(expressions, env)
-    {expressions |> Enum.reverse() |> hd(), env}
+    {hd(expressions), env}
   end
 
-  defp eval(%Call{expressions: expressions}, env) do
-    in_scoped(env, fn env ->
-      {expressions, _} = eval_list(expressions, env)
+  defp eval(%If{} = branch, env) do
+    scoped(&eval_if/2, branch, env)
+  end
 
-      case expressions do
-        [%Lambda{arguments: args} | params] when length(args) != length(params) ->
-          raise RuntimeError, "function takes #{length(args)}, but #{length(params)} were given"
+  defp eval(%Call{} = call, env) do
+    scoped(&eval_call/2, call, env)
+  end
 
-        [%Lambda{arguments: args, body: body} | params] ->
-          eval(body, Env.new(env, Enum.zip(args, params)))
+  defp eval_if(%If{} = branch, env) do
+    {value, env} = eval(branch.condition, env)
 
-        [node | _] ->
-          raise RuntimeError, "#{node} is not a function"
-      end
-    end)
+    if truthy?(value),
+      do: eval(branch.then, env),
+      else: eval(branch.else, env)
+  end
+
+  defp eval_call(%Call{expressions: expressions}, env) do
+    {expressions, env} = eval_list(expressions, env)
+
+    case Enum.reverse(expressions) do
+      [%Lambda{arguments: args} | params] when length(args) != length(params) ->
+        raise RuntimeError, "function takes #{length(args)}, but #{length(params)} were given"
+
+      [%Lambda{arguments: args, body: body} | params] ->
+        eval(body, Env.new(env, Enum.zip(args, params)))
+
+      [node | _] ->
+        raise RuntimeError, "#{node} is not a function"
+    end
   end
 
   defp eval_list(expressions, env) do
@@ -99,8 +103,8 @@ defmodule Signo.Interpreter do
     end)
   end
 
-  defp in_scoped(env, fun) do
-    {value, scoped} = fun.(Env.new(env))
+  defp scoped(parser, term, env) do
+    {value, scoped} = parser.(term, Env.new(env))
     {value, scoped.parent}
   end
 
