@@ -8,7 +8,7 @@ defmodule Signo.REPL do
   def repl do
     IO.puts(erlang_info())
     IO.puts("Interactive Signo v#{Signo.version()} (#{elixir_info()})")
-    repl(%{})
+    repl(%Env{})
   end
 
   defp erlang_info, do: :erlang.system_info(:system_version)
@@ -30,8 +30,10 @@ defmodule Signo.REPL do
   end
 
   defp eval({source, env}) do
-    Signo.eval_source!(source)
-    env
+    source
+    |> Signo.lex!()
+    |> Signo.parse!()
+    |> Signo.evaluate!(env)
   end
 
   defp print(env) do
@@ -40,7 +42,6 @@ defmodule Signo.REPL do
 
   defp log_error(exception) do
     IO.puts("#{red()}#{Exception.message(exception)}#{reset()}")
-    # me too
-    true
+    true # me too
   end
 end
