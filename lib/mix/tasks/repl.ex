@@ -10,6 +10,12 @@ defmodule Mix.Tasks.Repl do
       hello world
       sig(2)>
 
+  Turns out Elixir and Erlang make something as simple as a readline *a fucking nightmare*
+  to setup. So if you want a decent typing experience, consider installing
+  [rlwrap](https://github.com/hanslub42/rlwrap) and running the REPL like this:
+
+      rlwrap mix repl
+
   """
   use Mix.Task
 

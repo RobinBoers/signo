@@ -18,7 +18,7 @@ docs() {
 
 repl() {
   mix compile >/dev/null
-  mix repl
+  rlwrap mix repl
 }
 
 # Temporary
