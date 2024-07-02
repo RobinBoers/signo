@@ -24,7 +24,7 @@ defmodule Signo.StdLib do
     %Env{
       scope: %{
         "print" =>   Builtin.new(:print, 1),
-        "not" =>     Builtin.new(:neg, 2),
+        "not" =>     Builtin.new(:neg, 1),
         "and" =>     Builtin.new(:and, 2),
         "or" =>      Builtin.new(:either, 2),
         "nor" =>     Builtin.new(:neither, 2),

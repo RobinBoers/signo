@@ -27,9 +27,9 @@ defmodule Signo.Interpreter do
     defexception [:message]
 
     @impl true
-    def exception(defined: defined, given: given, position: pos) do
+    def exception(arity: arity, given: given, position: pos) do
       %__MODULE__{
-        message: "function takes #{length(defined)}, but #{length(given)} were given at #{pos}"
+        message: "function takes #{arity}, but #{length(given)} were given at #{pos}"
       }
     end
   end
@@ -67,7 +67,7 @@ defmodule Signo.Interpreter do
 
   @spec evaluate!(AST.t()) :: Env.t()
   def evaluate!(ast) do
-    evaluate(ast.expressions, StdLib.kernel())
+    evaluate(ast.expressions, StdLib.kernel() |> Env.new())
   end
 
   @spec evaluate!(AST.t(), Env.t()) :: Env.t()
@@ -117,13 +117,13 @@ defmodule Signo.Interpreter do
 
     case Enum.reverse(expressions) do
       [%Lambda{arguments: args} | params] when length(params) != length(args) ->
-        raise ArgumentError, defined: args, given: params, position: proc.pos
+        raise ArgumentError, arity: length(args), given: params, position: proc.pos
 
       [%Lambda{arguments: args, body: body} | params] ->
-        eval(body, Env.new(env, Enum.zip(args, params)))
+        eval(body, Env.new(env, args |> Enum.map(&(&1.reference)) |> Enum.zip(params)))
 
       [%Builtin{arity: arity} | params] when length(params) != arity ->
-        raise ArgumentError, defined: 1..arity, given: params, position: proc.pos
+        raise ArgumentError, defined: arity, given: params, position: proc.pos
 
       [%Builtin{definition: definition} | params] ->
         {apply(StdLib, definition, params) |> Literal.new(), env}
@@ -132,7 +132,7 @@ defmodule Signo.Interpreter do
         raise RuntimeError, message: "#{node} is not a function", position: proc.pos
     end
   rescue
-    FunctionClauseError -> reraise TypeError, position: proc.pos
+    FunctionClauseError -> raise TypeError, position: proc.pos
   end
 
   defp eval_list(expressions, env) do

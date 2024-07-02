@@ -11,7 +11,10 @@ defmodule Signo.REPL do
   def repl do
     IO.puts(erlang_info())
     IO.puts("Interactive Signo v#{Signo.version()} (#{elixir_info()})")
-    repl(StdLib.kernel())
+
+    StdLib.kernel()
+    |> Env.new()
+    |> repl()
   end
 
   defp erlang_info, do: :erlang.system_info(:system_version)
@@ -33,8 +36,10 @@ defmodule Signo.REPL do
   end
 
   defp eval({source, env}, ln) do
-    pos = Position.new(:nofile, ln)
+    eval(source, env, Position.new(:nofile, ln))
+  end
 
+  defp eval(source, env, pos) do
     source
     |> Signo.lex!(pos)
     |> Signo.parse!()
