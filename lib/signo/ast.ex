@@ -111,6 +111,7 @@ defmodule Signo.AST do
 
     defimpl String.Chars do
       def to_string(%@for{value: value}) when is_atom(value), do: "##{value}"
+      def to_string(%@for{value: value}) when is_binary(value), do: "'#{value}'"
       def to_string(%@for{value: value}), do: "#{value}"
     end
   end
@@ -193,6 +194,12 @@ defmodule Signo.AST do
         body: body
       }
     end
+
+    defimpl String.Chars do
+      def to_string(%@for{arguments: args}) do
+        "<lambda>(#{args |> Enum.map(&(&1.reference)) |> Enum.join(" ")} -> ...)"
+      end
+    end
   end
 
   defmodule Builtin do
@@ -216,7 +223,7 @@ defmodule Signo.AST do
     end
 
     defimpl String.Chars do
-      def to_string(%@for{definition: definition}), do: "#{definition}"
+      def to_string(%@for{definition: definition}), do: "<builtin>(#{definition})"
     end
   end
 end
