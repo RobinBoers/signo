@@ -23,48 +23,48 @@ defmodule Signo.StdLib do
   def kernel do
     %Env{
       scope: %{
-        "print" =>   Builtin.new(:print, 1),
-        "not" =>     Builtin.new(:neg, 1),
-        "and" =>     Builtin.new(:and, 2),
-        "or" =>      Builtin.new(:either, 2),
-        "nor" =>     Builtin.new(:neither, 2),
-        "xor" =>     Builtin.new(:xor, 2),
-        "==" =>      Builtin.new(:eq, 2),
-        "!=" =>      Builtin.new(:not_eq, 2),
-        ">" =>       Builtin.new(:gt, 2),
-        ">=" =>      Builtin.new(:gte, 2),
-        "<" =>       Builtin.new(:lt, 2),
-        "<=" =>      Builtin.new(:lte, 2),
-        "+" =>       Builtin.new(:add, 2),
-        "-" =>       Builtin.new(:sub, 2),
-        "*" =>       Builtin.new(:mult, 2),
-        "/" =>       Builtin.new(:div, 2),
-        "^" =>       Builtin.new(:pow, 2),
-        "sqrt" =>    Builtin.new(:sqrt, 1),
-        "abs" =>     Builtin.new(:abs, 1),
-        "pi" =>      Builtin.new(:pi, 0),
-        "tau" =>     Builtin.new(:tau, 0),
-        "sin" =>     Builtin.new(:sin, 1),
-        "cos" =>     Builtin.new(:cos, 1),
-        "tan" =>     Builtin.new(:tan, 1),
-        "asin" =>    Builtin.new(:asin, 1),
-        "acos" =>    Builtin.new(:acos, 1),
-        "atan" =>    Builtin.new(:atan, 1),
-        "ln" =>      Builtin.new(:ln, 1),
-        "log" =>     Builtin.new(:log, 2),
-        "logn" =>    Builtin.new(:logn, 2),
+        "print" => Builtin.new(:print, 1),
+        "not" => Builtin.new(:neg, 1),
+        "and" => Builtin.new(:and, 2),
+        "or" => Builtin.new(:either, 2),
+        "nor" => Builtin.new(:neither, 2),
+        "xor" => Builtin.new(:xor, 2),
+        "==" => Builtin.new(:eq, 2),
+        "!=" => Builtin.new(:not_eq, 2),
+        ">" => Builtin.new(:gt, 2),
+        ">=" => Builtin.new(:gte, 2),
+        "<" => Builtin.new(:lt, 2),
+        "<=" => Builtin.new(:lte, 2),
+        "+" => Builtin.new(:add, 2),
+        "-" => Builtin.new(:sub, 2),
+        "*" => Builtin.new(:mult, 2),
+        "/" => Builtin.new(:div, 2),
+        "^" => Builtin.new(:pow, 2),
+        "sqrt" => Builtin.new(:sqrt, 1),
+        "abs" => Builtin.new(:abs, 1),
+        "pi" => Builtin.new(:pi, 0),
+        "tau" => Builtin.new(:tau, 0),
+        "sin" => Builtin.new(:sin, 1),
+        "cos" => Builtin.new(:cos, 1),
+        "tan" => Builtin.new(:tan, 1),
+        "asin" => Builtin.new(:asin, 1),
+        "acos" => Builtin.new(:acos, 1),
+        "atan" => Builtin.new(:atan, 1),
+        "ln" => Builtin.new(:ln, 1),
+        "log" => Builtin.new(:log, 2),
+        "logn" => Builtin.new(:logn, 2)
       }
     }
   end
 
   defguardp both_literals(a, b)
-    when is_struct(a, Literal)
-    and is_struct(b, Literal)
+            when is_struct(a, Literal) and
+                   is_struct(b, Literal)
 
   defguardp both_numbers(a, b)
-    when both_literals(a, b)
-    and is_number(a.value)
-    and is_number(b.value)
+            when both_literals(a, b) and
+                   is_number(a.value) and
+                   is_number(b.value)
 
   @doc """
   Prints the given argument to stdout, and returns `#ok`.

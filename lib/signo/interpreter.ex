@@ -120,7 +120,7 @@ defmodule Signo.Interpreter do
         raise ArgumentError, arity: length(args), given: params, position: proc.pos
 
       [%Lambda{arguments: args, body: body} | params] ->
-        eval(body, Env.new(env, args |> Enum.map(&(&1.reference)) |> Enum.zip(params)))
+        eval(body, Env.new(env, args |> Enum.map(& &1.reference) |> Enum.zip(params)))
 
       [%Builtin{arity: arity} | params] when length(params) != arity ->
         raise ArgumentError, defined: arity, given: params, position: proc.pos
@@ -132,6 +132,7 @@ defmodule Signo.Interpreter do
         raise RuntimeError, message: "#{node} is not a function", position: proc.pos
     end
   rescue
+    # credo:disable-for-next-line
     FunctionClauseError -> raise TypeError, position: proc.pos
   end
 

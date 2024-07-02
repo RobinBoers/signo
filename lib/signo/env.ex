@@ -9,6 +9,7 @@ defmodule Signo.Env do
   use TypedStruct
 
   alias Signo.AST
+  alias Signo.Position
   alias Signo.Interpreter.ReferenceError
 
   @type scope :: %{AST.ref() => AST.expression()}

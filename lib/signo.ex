@@ -49,9 +49,14 @@ defmodule Signo do
   @doc false
   def main(path \\ "main.sg"), do: eval_file!(path)
 
+  @doc """
+  Prints the Signo version of the running interpreter.
+  """
   @spec version() :: String.t()
   def version do
-    Mix.Project.config()[:version]
+    :signo
+    |> Application.spec(:vsn)
+    |> to_string()
   end
 
   @doc """
