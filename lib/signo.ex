@@ -138,8 +138,7 @@ defmodule Signo do
   Evaluates a `Signo.AST` into a `Signo.Env` containing final
   global scope, and executes any side-effects.
 
-  See `Signo.Interpreter` in "Exceptions" for potential exceptions
-  that can be raised.
+  See "Exceptions" for potential exceptions that can be raised.
   """
   @spec evaluate!(AST.t()) :: Env.t()
   defdelegate evaluate!(ast), to: Interpreter
