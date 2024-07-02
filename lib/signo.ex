@@ -148,5 +148,5 @@ defmodule Signo do
   in other contexts as well.
   """
   @spec evaluate!(AST.t(), Env.t()) :: {AST.value(), Env.t()}
-  defdelegate evaluate!(env, ast), to: Interpreter
+  defdelegate evaluate!(ast, env), to: Interpreter
 end
