@@ -3,8 +3,9 @@ defmodule Signo.Interpreter do
 
   alias Signo.AST
   alias Signo.Env
+  alias Signo.StdLib
 
-  alias Signo.AST.{Literal, Symbol, Call, Block, Nil, If, Let, Lambda}
+  alias Signo.AST.{Literal, Symbol, Procedure, Nil, If, Let, Lambda, Builtin}
 
   defmodule RuntimeError do
     @moduledoc """
@@ -12,6 +13,20 @@ defmodule Signo.Interpreter do
     while evaluating the AST.
     """
     defexception [:message]
+  end
+
+  defmodule ArgumentError do
+    @moduledoc """
+    Raised when a function is called with the wrong amount of arguments.
+    """
+    defexception [:message]
+
+    @impl true
+    def exception(defined: defined, given: given) do
+      %__MODULE__{
+        message: "function takes #{length(defined)}, but #{length(given)} were given"
+      }
+    end
   end
 
   defmodule TypeError do
@@ -22,12 +37,19 @@ defmodule Signo.Interpreter do
     defexception [:message]
   end
 
+  @literals [Literal, Lambda, Nil]
+
   @cached_true %Literal{value: true}
   @cached_false %Literal{value: false}
   @cached_nil %Nil{}
 
+  @spec evaluate!(AST.t()) :: Env.t()
+  def evaluate!(ast) do
+    evaluate(ast.expressions, StdLib.kernel())
+  end
+
   @spec evaluate!(AST.t(), Env.t()) :: Env.t()
-  def evaluate!(ast, env \\ %Env{}) do
+  def evaluate!(ast, env) do
     evaluate(ast.expressions, env)
   end
 
@@ -48,29 +70,17 @@ defmodule Signo.Interpreter do
     {Env.lookup!(env, ref), env}
   end
 
-  defp eval(%Literal{} = literal, env) do
+  defp eval(%node{} = literal, env)
+      when node in @literals do
     {literal, env}
-  end
-
-  defp eval(%Lambda{} = lambda, env) do
-    {lambda, env}
-  end
-
-  defp eval(%Nil{} = empty, env) do
-    {empty, env}
-  end
-
-  defp eval(%Block{expressions: expressions}, env) do
-    {expressions, _} = eval_list(expressions, env)
-    {hd(expressions), env}
   end
 
   defp eval(%If{} = branch, env) do
     scoped(&eval_if/2, branch, env)
   end
 
-  defp eval(%Call{} = call, env) do
-    scoped(&eval_call/2, call, env)
+  defp eval(%Procedure{} = call, env) do
+    scoped(&eval_prodecure/2, call, env)
   end
 
   defp eval_if(%If{} = branch, env) do
@@ -81,15 +91,21 @@ defmodule Signo.Interpreter do
       else: eval(branch.else, env)
   end
 
-  defp eval_call(%Call{expressions: expressions}, env) do
+  defp eval_prodecure(%Procedure{expressions: expressions}, env) do
     {expressions, env} = eval_list(expressions, env)
 
     case Enum.reverse(expressions) do
-      [%Lambda{arguments: args} | params] when length(args) != length(params) ->
-        raise RuntimeError, "function takes #{length(args)}, but #{length(params)} were given"
+      [%Lambda{arguments: args} | params] when length(params) != length(args) ->
+        raise ArgumentError, defined: args, given: params
 
       [%Lambda{arguments: args, body: body} | params] ->
         eval(body, Env.new(env, Enum.zip(args, params)))
+
+      [%Builtin{arity: arity} | params] when length(params) != arity ->
+        raise ArgumentError, defined: 1..arity, given: params
+
+      [%Builtin{definition: definition} | params] ->
+        {apply(StdLib, definition, params), env}
 
       [node | _] ->
         raise RuntimeError, "#{node} is not a function"

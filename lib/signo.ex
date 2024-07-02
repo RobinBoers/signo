@@ -4,42 +4,29 @@ defmodule Signo do
 
   ## Language overview
 
-  Signo is a Lisp-like language. It has two core concepts:
-
   ### Atomics
 
   - Literals, such as `100`, `1.0`, `#true`, `"hello world"` and `#ok`.
   - References to previously defined variables or functions.
+  - Keywords, like `let`, `if`, `def`, and `lambda`.
 
-  ### Lists
+  ### Procedures
 
-  Space-seperated lists containing atomics, like this: `("hello" 100 "worlds")`.
-
-  As you can see, both of these are expressions. Because, in Signo, everything is an
-  expression. A list can evaluate to another value when it starts with one of the
-  following keywords:
+  Atomics can be grouped in space-seperated lists called procedures, like this:
+  `(print "hello" 100 "worlds")`. What the procedure evaluates to is determinded
+  based on the first atomic.
 
   - `(let $name $value)` puts a reference in scope, and returns the assigned value.
   - `(if $cond $then $else)` branches the control flow based on the given condition.
+  - `(lambda $args $body)` evaluates to a callable function.
+  - `(def $name $args $body)` is syntatic sugar for `(let $name (lambda $args $body))`.
+  - `($name $args...)` calls a function and returns the evaluated body.
+
+  In Signo, everything is an expression. That means every procedure evaluates to
+  *something*, meaning blocks of expressions can be nested.
 
   Furthermore, Signo is entirely immutable. While a variable can be reassigned within
   scope, a reference to a variable can never be mutated and then used elsewhere.
-
-  ### Functions
-
-  `(lambda $args $body)` evaluates to a callable function. A function is automatically
-  called when it's the first expression in a list: `((lambda (n) (* n 2)), 3)`
-  (would evaluate to `6`).
-
-  Functions can be bound to variable names, just like any other expression:
-
-      (let double (lambda (n) (* n 2)))
-      (double 3)
-
-  Because this is such a common construct, Signo has some syntatic sugar for it:
-
-      (def double (n) (* n 2))
-      (double 3)
 
   ## Usage
 

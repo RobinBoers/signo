@@ -19,26 +19,10 @@ defmodule Signo.AST do
     field :expressions, [expression()]
   end
 
-  defmodule Call do
+  defmodule Procedure do
     @moduledoc """
     A list of expressions that evaluates to a
     procedure call.
-    """
-
-    typedstruct enforce: true do
-      field :expressions, [AST.expression()]
-    end
-
-    @spec new([AST.expression()]) :: t()
-    def new(expressions) do
-      %__MODULE__{expressions: expressions}
-    end
-  end
-
-  defmodule Block do
-    @moduledoc """
-    A list of expressions that evaluates to the
-    value of the last expression.
     """
 
     typedstruct enforce: true do
@@ -161,6 +145,31 @@ defmodule Signo.AST do
         arguments: args,
         body: body
       }
+    end
+  end
+
+  defmodule Builtin do
+    @moduledoc """
+    A literal value, as an elixir `t:term/0`.
+    """
+
+    @type definition :: atom()
+
+    typedstruct enforce: true do
+      field :definition, definition()
+      field :arity, arity() | :arbitrary
+    end
+
+    @spec new(definition(), arity()) :: t()
+    def new(definition, arity) do
+      %__MODULE__{
+        definition: definition,
+        arity: arity
+      }
+    end
+
+    defimpl String.Chars do
+      def to_string(%@for{definition: definition}), do: "#{definition}"
     end
   end
 end

@@ -1,6 +1,6 @@
 (let meaningOfTheUniverse 42)
 (let myAccountBalance 'nothing, loser!')
-(let iAmAnIdiot 69.420)
+(let coolNumber 69.420)
 (let thisIsTrue #true)
 
 (def double (n) (* 2 n))

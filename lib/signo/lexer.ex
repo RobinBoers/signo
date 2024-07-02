@@ -21,9 +21,9 @@ defmodule Signo.Lexer do
     end
   end
 
-  @keywords ["if", "let", "def", "lambda", "do"]
+  @keywords ["if", "let", "def", "lambda"]
   @whitespace ["\n", "\t", "\v", "\r", " "]
-  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "~", "<", ">"]
+  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">"]
 
   defguardp is_whitespace(ch) when ch in @whitespace
   defguardp is_special(ch) when ch in @specials

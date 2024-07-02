@@ -32,7 +32,7 @@ defmodule Signo.Token do
   @typedoc """
   A valid keyword.
   """
-  @type kw :: :if | :let | :def | :lambda | :do
+  @type kw :: :if | :let | :def | :lambda
 
   @typedoc """
   The value of the literal as an elixir `t:term/0`.

@@ -33,6 +33,7 @@ defmodule Signo.MixProject do
     authors: ["Robijntje"],
     formatters: ["html"],
     groups_for_modules: [
+      "Standard Library": [Signo.StdLib],
       "AST": [~r/Signo.AST/]
     ]
   ]

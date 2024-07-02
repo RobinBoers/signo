@@ -4,7 +4,7 @@ defmodule Signo.Parser do
   alias Signo.Token
 
   alias Signo.AST
-  alias Signo.AST.{Literal, Symbol, Call, Block, Nil, If, Let, Lambda}
+  alias Signo.AST.{Literal, Symbol, Procedure, Nil, If, Let, Lambda}
 
   defmodule ParseError do
     @moduledoc """
@@ -56,13 +56,7 @@ defmodule Signo.Parser do
         {Nil.new(), rest}
 
       %Token{type: :closing} ->
-        {collected |> Enum.reverse() |> Call.new(), rest}
-
-      %Token{type: {:keyword, :do}} when collected == [] ->
-        {expression, rest} = parse_expression(rest)
-        # TODO(find 0 or more expressions)
-        expressions = [expression]
-        {Block.new(expressions), rest}
+        {collected |> Enum.reverse() |> Procedure.new(), rest}
 
       %Token{type: {:keyword, :if}} when collected == [] ->
         {condition, rest} = parse_expression(rest)
