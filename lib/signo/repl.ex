@@ -4,8 +4,7 @@ defmodule Signo.REPL do
   alias Signo.Env
   alias Signo.Position
   alias Signo.StdLib
-
-  import IO.ANSI
+  alias Signo.Logger
 
   @spec repl() :: no_return()
   def repl do
@@ -20,6 +19,8 @@ defmodule Signo.REPL do
   defp erlang_info, do: :erlang.system_info(:system_version)
   defp elixir_info, do: "Elixir/#{System.version()}"
 
+  @dialyzer {:nowarn_function, repl: 2}
+
   @spec repl(Env.t(), pos_integer()) :: no_return()
   defp repl(env, ln \\ 1) do
     env
@@ -28,7 +29,7 @@ defmodule Signo.REPL do
     |> print()
     |> repl(ln + 1)
   rescue
-    exception -> log_error(exception) and repl(env, ln)
+    exception -> print_error(exception) and repl(env, ln)
   end
 
   defp read(env, ln) do
@@ -46,12 +47,13 @@ defmodule Signo.REPL do
     |> Signo.evaluate!(env)
   end
 
-  defp print(env) do
+  defp print({expression, env}) do
+    Logger.log_expression(expression)
     env
   end
 
-  defp log_error(exception) do
-    IO.puts("#{red()}#{Exception.message(exception)}#{reset()}")
+  defp print_error(exception) do
+    Logger.log_error(exception)
     true # me too
   end
 end

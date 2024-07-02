@@ -72,7 +72,7 @@ defmodule Signo.Lexer do
   end
 
   defp read_comment(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &not(is_newline(&1)))
+    {collected, rest} = Enum.split_while(chars, &(not is_newline(&1)))
     lex(rest, tokens, inc(pos, collected))
   end
 

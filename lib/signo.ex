@@ -78,10 +78,10 @@ defmodule Signo do
 
       iex> Signo.eval_file!("./main.sg")
       hello, world!
-      %Signo.Env{...}
+      {%AST.Literal{value: "hello world"}, %Signo.Env{...}}
 
   """
-  @spec eval_file!(Path.t()) :: Env.t()
+  @spec eval_file!(Path.t()) :: {AST.value(), Env.t()}
   def eval_file!(path) do
     path
     |> File.read!()
@@ -97,10 +97,10 @@ defmodule Signo do
 
       iex> Signo.eval_source!("(print 69)")
       69
-      %Signo.Env{...}
+      {%AST.Literal{value: :ok}, %Signo.Env{...}}
 
   """
-  @spec eval_source!(String.t()) :: Env.t()
+  @spec eval_source!(String.t()) :: {AST.value(), Env.t()}
   def eval_source!(source) do
     source
     |> lex!()
@@ -137,7 +137,7 @@ defmodule Signo do
 
   See "Exceptions" for potential exceptions that can be raised.
   """
-  @spec evaluate!(AST.t()) :: Env.t()
+  @spec evaluate!(AST.t()) :: {AST.value(), Env.t()}
   defdelegate evaluate!(ast), to: Interpreter
 
   @doc """
@@ -147,6 +147,6 @@ defmodule Signo do
   Primarily used to facilitate REPL-like programs, but can be applied
   in other contexts as well.
   """
-  @spec evaluate!(AST.t(), Env.t()) :: Env.t()
+  @spec evaluate!(AST.t(), Env.t()) :: {AST.value(), Env.t()}
   defdelegate evaluate!(env, ast), to: Interpreter
 end

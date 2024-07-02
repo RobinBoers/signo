@@ -8,6 +8,10 @@ defmodule Signo.AST do
   alias Signo.Position
   alias Signo.Env
 
+  @typedoc """
+  An expression is a building block for the AST
+  that evaluates down to an `t:value/0`.
+  """
   @type expression ::
           __MODULE__.Procedure.t()
           | __MODULE__.Block.t()
@@ -19,7 +23,20 @@ defmodule Signo.AST do
           | __MODULE__.Lambda.t()
           | __MODULE__.Builtin.t()
 
+  @typedoc """
+  A reference is a key by which a `t:value/0` can
+  be lookup up in the `Signo.Env`.
+  """
   @type ref :: String.t()
+
+  @typedoc """
+  A value is an expression that cannot be further
+  simplied by evaluating it.
+  """
+  @type value :: __MODULE__.Nil.t()
+          | __MODULE__.Literal.t()
+          | __MODULE__.Lambda.t()
+          | __MODULE__.Builtin.t()
 
   typedstruct enforce: true do
     field :expressions, [expression()]
@@ -93,6 +110,7 @@ defmodule Signo.AST do
     end
 
     defimpl String.Chars do
+      def to_string(%@for{value: value}) when is_atom(value), do: "##{value}"
       def to_string(%@for{value: value}), do: "#{value}"
     end
   end

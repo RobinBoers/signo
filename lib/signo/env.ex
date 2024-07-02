@@ -12,15 +12,14 @@ defmodule Signo.Env do
   alias Signo.Position
   alias Signo.Interpreter.ReferenceError
 
-  @type scope :: %{AST.ref() => AST.expression()}
-  @type definition :: AST.expression() | :undefined
+  @type scope :: %{AST.ref() => AST.value()}
 
   typedstruct enforce: true do
     field :parent, t() | nil, default: nil
     field :scope, scope(), default: %{}
   end
 
-  @spec new(t(), [{AST.ref(), AST.expression()}]) :: t()
+  @spec new(t(), [{AST.ref(), AST.value()}]) :: t()
   def new(parent, definitions \\ []) do
     %__MODULE__{
       parent: parent,
@@ -28,7 +27,7 @@ defmodule Signo.Env do
     }
   end
 
-  @spec assign(t(), AST.ref(), AST.expression()) :: t()
+  @spec assign(t(), AST.ref(), AST.value()) :: t()
   def assign(env = %__MODULE__{}, ref, value) do
     %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
   end
@@ -38,7 +37,7 @@ defmodule Signo.Env do
     raise ReferenceError, reference: ref, position: pos
   end
 
-  @spec lookup!(t(), AST.ref(), Position.t()) :: definition()
+  @spec lookup!(t(), AST.ref(), Position.t()) :: AST.value()
   def lookup!(env = %__MODULE__{}, ref, pos) do
     if value = Map.get(env.scope, ref),
       do: value,

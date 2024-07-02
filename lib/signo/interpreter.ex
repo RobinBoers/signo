@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Consistency.ParameterPatternMatching
 defmodule Signo.Interpreter do
   @moduledoc false
 
@@ -63,18 +64,18 @@ defmodule Signo.Interpreter do
     end
   end
 
-  @spec evaluate!(AST.t()) :: Env.t()
+  @spec evaluate!(AST.t()) :: {AST.value(), Env.t()}
   def evaluate!(ast) do
     evaluate(ast.expressions, StdLib.kernel() |> Env.new())
   end
 
-  @spec evaluate!(AST.t(), Env.t()) :: Env.t()
+  @spec evaluate!(AST.t(), Env.t()) :: {AST.value(), Env.t()}
   def evaluate!(ast, env) do
     evaluate(ast.expressions, env)
   end
 
-  @spec evaluate([AST.expression()], Env.t()) :: Env.t()
-  defp evaluate([], env), do: env
+  @spec evaluate([AST.expression()], Env.t()) :: {AST.value(), Env.t()}
+  defp evaluate([node], env), do: eval(node, env)
 
   defp evaluate([node | rest], env) do
     {_, env} = eval(node, env)
@@ -139,8 +140,9 @@ defmodule Signo.Interpreter do
         raise RuntimeError, message: "#{node} is not a function", position: proc.pos
     end
   rescue
-    # credo:disable-for-next-line
-    FunctionClauseError -> raise TypeError, position: proc.pos
+    FunctionClauseError ->
+      # credo:disable-for-next-line
+      raise TypeError, position: proc.pos
   end
 
   defp eval_list(expressions, env) do

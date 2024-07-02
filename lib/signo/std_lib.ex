@@ -75,7 +75,7 @@ defmodule Signo.StdLib do
       sig>
 
   """
-  @spec print(AST.expression()) :: Literal.value()
+  @spec print(AST.value()) :: Literal.value()
   defdelegate print(item), to: IO, as: :puts
 
   @doc """
@@ -90,7 +90,7 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec neg(AST.expression()) :: Literal.value()
+  @spec neg(AST.value()) :: Literal.value()
   def neg(literal) do
     not truthy?(literal)
   end
@@ -107,7 +107,7 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec both(AST.expression(), AST.expression()) :: Literal.value()
+  @spec both(AST.value(), AST.value()) :: Literal.value()
   def both(a, b) do
     truthy?(a) and truthy?(b)
   end
@@ -124,7 +124,7 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec either(AST.expression(), AST.expression()) :: Literal.value()
+  @spec either(AST.value(), AST.value()) :: Literal.value()
   def either(a, b) do
     truthy?(a) or truthy?(b)
   end
@@ -141,7 +141,7 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec neither(AST.expression(), AST.expression()) :: Literal.value()
+  @spec neither(AST.value(), AST.value()) :: Literal.value()
   def neither(a, b) do
     not (truthy?(a) and truthy?(b))
   end
@@ -160,7 +160,7 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec xor(AST.expression(), AST.expression()) :: Literal.value()
+  @spec xor(AST.value(), AST.value()) :: Literal.value()
   def xor(a, b) do
     (truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a))
   end
