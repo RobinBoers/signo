@@ -27,10 +27,11 @@ defmodule Signo.Lexer do
 
   defguardp is_whitespace(ch) when ch in @whitespace
   defguardp is_special(ch) when ch in @specials
+  defguardp is_digit(ch) when "0" <= ch and ch <= "9"
   defguardp is_lower(ch) when "a" <= ch and ch <= "z"
   defguardp is_upper(ch) when "A" <= ch and ch <= "Z"
-  defguardp is_letter(ch) when is_lower(ch) or is_upper(ch) or is_special(ch)
-  defguardp is_digit(ch) when "0" <= ch and ch <= "9"
+  defguardp is_letter(ch) when is_lower(ch) or is_upper(ch)
+  defguardp is_alnum(ch) when is_letter(ch) or is_digit(ch) or is_special(ch)
   defguardp is_semicolon(ch) when ch == ";"
   defguardp is_newline(ch) when ch == "\n"
   defguardp is_quote(ch) when ch == "'"
@@ -64,8 +65,8 @@ defmodule Signo.Lexer do
       is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
       is_semicolon(ch) -> read_comment(chars, tokens, pos)
       is_hash(ch) -> read_atom(chars, tokens, pos)
-      is_letter(ch) -> read_identifier(chars, tokens, pos)
       is_digit(ch) -> read_number(chars, tokens, pos)
+      is_alnum(ch) -> read_identifier(chars, tokens, pos)
       is_quote(ch) -> read_string(chars, tokens, pos)
       true -> read_next_char(chars, tokens, pos)
     end
@@ -77,7 +78,7 @@ defmodule Signo.Lexer do
   end
 
   defp read_atom(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &is_letter/1)
+    {collected, rest} = Enum.split_while(chars, &is_alnum/1)
     lexeme = Enum.join(collected)
     literal = lexeme |> String.slice(1..-1//1) |> String.to_atom()
 
@@ -86,7 +87,7 @@ defmodule Signo.Lexer do
   end
 
   defp read_identifier(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &is_letter/1)
+    {collected, rest} = Enum.split_while(chars, &is_alnum/1)
     lexeme = Enum.join(collected)
 
     token = Token.new(ckeck_keyword(lexeme), lexeme, pos)
