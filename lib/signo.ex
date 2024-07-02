@@ -2,39 +2,16 @@ defmodule Signo do
   @moduledoc """
   Signo is a beautifully elegant Lisp-like language, written in Elixir.
 
-  ## Language overview
+  This module contains the public (Elixir) API for evaluating Signo programs. Check
+  out the "Pages" tab in the left-hand corner for details on installing and running
+  the interpreter, along with a detailed guide to the Signo language.
 
-  ### Atomics
+  You'll mainly be using `eval_file!/1` and `eval_source!/1`, or a CLI abstraction
+  of them, for compiling and interpreting your Signo source code. However, for more
+  advanced usecases, we also expose individual compiler steps, such as `lex!/1`,
+  `parse!/1`, `evaluate!/1`.
 
-  - Literals, such as `100`, `1.0`, `#true`, `"hello world"` and `#ok`.
-  - References to previously defined variables or functions.
-  - Keywords, like `let`, `if`, `def`, and `lambda`.
-
-  ### Procedures
-
-  Atomics can be grouped in space-seperated lists called procedures, like this:
-  `(print "hello" 100 "worlds")`. What the procedure evaluates to is determinded
-  based on the first atomic.
-
-  - `(let $name $value)` puts a reference in scope, and returns the assigned value.
-  - `(if $cond $then $else)` branches the control flow based on the given condition.
-  - `(lambda $args $body)` evaluates to a callable function.
-  - `(def $name $args $body)` is syntatic sugar for `(let $name (lambda $args $body))`.
-  - `($name $args...)` calls a function and returns the evaluated body.
-
-  In Signo, everything is an expression. That means every procedure evaluates to
-  *something*, meaning blocks of expressions can be nested.
-
-  Furthermore, Signo is entirely immutable. While a variable can be reassigned within
-  scope, a reference to a variable can never be mutated and then used elsewhere.
-
-  ## Usage
-
-  You'll mainly be using `eval_file!/1` and `eval_source!/1`, or
-  a CLI abstraction of them, for compiling and interpreting your Signo source code.
-
-  However, for more advanced usecases, we also expose individual compiler steps,
-  such as `lex!/1`, `parse!/1`, `evaluate!/1`.
+  See "mix tasks" in the left-hand corner for details on command-line usage.
   """
 
   alias Signo.Token

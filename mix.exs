@@ -32,9 +32,23 @@ defmodule Signo.MixProject do
     api_reference: false,
     authors: ["Robijntje"],
     formatters: ["html"],
+    extras: [
+      "docs/introduction.md",
+      "docs/basic-types.md",
+      "docs/language-features.md",
+      "docs/procedures.md"
+    ],
     groups_for_modules: [
       "Standard Library": [Signo.StdLib],
       "AST": [~r/Signo.AST/]
+    ],
+    groups_for_docs: [
+      General: & &1[:section] == :general,
+      Operators: & &1[:section] == :operators,
+      Numbers: & &1[:section] == :numbers,
+      Math: & &1[:section] == :math,
+      Strings: & &1[:section] == :strings,
+      Lists: & &1[:section] == :lists,
     ]
   ]
 end

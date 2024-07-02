@@ -18,13 +18,13 @@ docs() {
 
 repl() {
   mix compile >/dev/null
-  mix run -e "Signo.repl()"
+  mix repl
 }
 
 # Temporary
 
 publish() {
-  mix docs
+  mix docs || exit 1
   trap p:post_publish EXIT
   mv $DOC signo
   scp -r signo du11:public_ftp/
