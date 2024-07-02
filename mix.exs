@@ -7,11 +7,12 @@ defmodule Signo.MixProject do
     version: "0.1.0",
     elixir: "~> 1.16",
     start_permanent: Mix.env() == :prod,
+    dialyzer: [plt_add_apps: [:mix]],
     deps: deps(),
 
     # Docs
     source_url: "https://git.dupunkto.org/axcelott/signo",
-    homepage_url: "https://roblog.nl/projects",
+    homepage_url: "https://ftp.dupunkto.org/~axcelott/signo",
     docs: docs()
   ]
 
