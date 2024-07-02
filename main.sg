@@ -3,10 +3,17 @@
 (let coolNumber 69.420)
 (let thisIsTrue #true)
 
-(def double (n) (* 2 n))
+(def double (n) (* coolNumber n))
+(let coolNumber 2)
 (let result (double 8))
 
 (if (== result 16) (print 'it works!') (print 'it doesnt!'))
-(if (not #false) (print 'hello'))
+(if (not #false) (print myAccountBalance))
 
 ((lambda (n) (print n)) 'hello world!')
+
+(do 
+  (let y (* 2 result))
+  (print y))
+
+(print y)

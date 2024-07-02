@@ -9,6 +9,7 @@ defmodule Signo.AST do
 
   @type expression ::
           __MODULE__.Procedure.t()
+          | __MODULE__.Block.t()
           | __MODULE__.Nil.t()
           | __MODULE__.Literal.t()
           | __MODULE__.Symbol.t()
@@ -36,6 +37,21 @@ defmodule Signo.AST do
     @spec new([AST.expression()], Position.t()) :: t()
     def new(expressions, pos) do
       %__MODULE__{expressions: expressions, pos: pos}
+    end
+  end
+
+  defmodule Block do
+    @moduledoc """
+    A scoped list of expressions that evaluates to the last expression.
+    """
+
+    typedstruct enforce: true do
+      field :expressions, [AST.expression()]
+    end
+
+    @spec new([AST.expression()]) :: t()
+    def new(expressions) do
+      %__MODULE__{expressions: expressions}
     end
   end
 

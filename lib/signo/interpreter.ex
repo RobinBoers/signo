@@ -5,7 +5,7 @@ defmodule Signo.Interpreter do
   alias Signo.Env
   alias Signo.StdLib
 
-  alias Signo.AST.{Literal, Symbol, Procedure, Nil, If, Let, Lambda, Builtin}
+  alias Signo.AST.{Procedure, Block, Nil, Literal, Symbol, If, Let, Lambda, Builtin}
 
   defmodule RuntimeError do
     @moduledoc """
@@ -98,6 +98,11 @@ defmodule Signo.Interpreter do
 
   defp eval(branch = %If{}, env) do
     scoped(&eval_if/2, branch, env)
+  end
+
+  defp eval(%Block{expressions: expressions}, env) do
+    {expressions, _} = eval_list(expressions, env)
+    {hd(expressions), env}
   end
 
   defp eval(proc = %Procedure{}, env) do
