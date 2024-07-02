@@ -46,11 +46,8 @@ defmodule Signo do
   alias Signo.AST
   alias Signo.REPL
 
-  @doc false
-  def main(path \\ "main.sg"), do: eval_file!(path)
-
   @doc """
-  Prints the Signo version of the running interpreter.
+  Returns the Signo version string.
   """
   @spec version() :: String.t()
   def version do
