@@ -108,8 +108,9 @@ defmodule Signo.Interpreter do
     {hd(expressions), env}
   end
 
-  defp eval(%Procedure{} = proc, env) do
-    scoped(&eval_prodecure/2, proc, env)
+  defp eval(%Procedure{expressions: expressions} = proc, env) do
+    {expressions, env} = eval_list(expressions, env)
+    scoped(&eval_prodecure/2, {proc, expressions}, env)
   end
 
   defp eval_if(%If{} = branch, env) do
@@ -120,9 +121,7 @@ defmodule Signo.Interpreter do
       else: eval(branch.else, env)
   end
 
-  defp eval_prodecure(%Procedure{} = proc, env) do
-    {expressions, env} = eval_list(proc.expressions, env)
-
+  defp eval_prodecure({%Procedure{} = proc, expressions}, env) do
     case Enum.reverse(expressions) do
       [%Lambda{arguments: args} | params] when length(params) != length(args) ->
         raise ArgumentError, arity: length(args), given: params, position: proc.pos
