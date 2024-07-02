@@ -6,6 +6,7 @@ defmodule Signo.AST do
 
   alias __MODULE__
   alias Signo.Position
+  alias Signo.Env
 
   @type expression ::
           __MODULE__.Procedure.t()
@@ -164,6 +165,7 @@ defmodule Signo.AST do
     typedstruct enforce: true do
       field :arguments, [Symbol.t()]
       field :body, AST.expression()
+      field :closure, Env.t() | nil, default: nil
     end
 
     @spec new([Symbol.t()], AST.expression()) :: t()

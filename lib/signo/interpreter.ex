@@ -63,8 +63,6 @@ defmodule Signo.Interpreter do
     end
   end
 
-  @literals [Literal, Lambda, Builtin, Nil]
-
   @spec evaluate!(AST.t()) :: Env.t()
   def evaluate!(ast) do
     evaluate(ast.expressions, StdLib.kernel() |> Env.new())
@@ -92,11 +90,16 @@ defmodule Signo.Interpreter do
     {Env.lookup!(env, ref, pos), env}
   end
 
-  defp eval(literal = %node{}, env) when node in @literals do
+  defp eval(%Lambda{closure: nil} = lambda, env) do
+    {%Lambda{lambda | closure: Env.new(env)}, env}
+  end
+
+  defp eval(%node{} = literal, env)
+       when node in [Nil, Literal, Lambda, Builtin] do
     {literal, env}
   end
 
-  defp eval(branch = %If{}, env) do
+  defp eval(%If{} = branch, env) do
     scoped(&eval_if/2, branch, env)
   end
 
@@ -105,11 +108,11 @@ defmodule Signo.Interpreter do
     {hd(expressions), env}
   end
 
-  defp eval(proc = %Procedure{}, env) do
+  defp eval(%Procedure{} = proc, env) do
     scoped(&eval_prodecure/2, proc, env)
   end
 
-  defp eval_if(branch = %If{}, env) do
+  defp eval_if(%If{} = branch, env) do
     {value, env} = eval(branch.condition, env)
 
     if truthy?(value),
@@ -117,14 +120,14 @@ defmodule Signo.Interpreter do
       else: eval(branch.else, env)
   end
 
-  defp eval_prodecure(proc = %Procedure{}, env) do
+  defp eval_prodecure(%Procedure{} = proc, env) do
     {expressions, env} = eval_list(proc.expressions, env)
 
     case Enum.reverse(expressions) do
       [%Lambda{arguments: args} | params] when length(params) != length(args) ->
         raise ArgumentError, arity: length(args), given: params, position: proc.pos
 
-      [%Lambda{arguments: args, body: body} | params] ->
+      [%Lambda{arguments: args, body: body, closure: env} | params] ->
         eval(body, Env.new(env, args |> Enum.map(& &1.reference) |> Enum.zip(params)))
 
       [%Builtin{arity: arity} | params] when length(params) != arity ->
