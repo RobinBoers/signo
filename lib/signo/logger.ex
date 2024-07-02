@@ -12,6 +12,10 @@ defmodule Signo.Logger do
   end
 
   @spec log_expression(term()) :: :ok
+  def log_expression(%Signo.AST.String{value: string}) do
+    log_expression("'#{string}'")
+  end
+
   def log_expression(expression) do
     "#{expression}"
     |> blue()

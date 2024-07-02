@@ -113,7 +113,7 @@ defmodule Signo.Interpreter do
 
   defp eval(%List{expressions: expressions}, env) do
     {expressions, env} = eval_list(expressions, env)
-    {%List{expressions: expressions}, env}
+    {%List{expressions: Enum.reverse(expressions)}, env}
   end
 
   defp eval(%node{} = value, env) when node in @values do

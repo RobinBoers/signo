@@ -14,7 +14,7 @@ defmodule Signo.StdLib do
 
   alias Signo.Env
   alias Signo.AST
-  alias Signo.AST.{Number, Atom, String, List, Builtin}
+  alias Signo.AST.{Number, Atom, String, List, Nil, Builtin}
 
   import Signo.Interpreter, only: [truthy?: 1]
 
@@ -24,6 +24,7 @@ defmodule Signo.StdLib do
     %Env{
       scope: %{
         "print" => Builtin.new(:print, 1),
+        "inspect" => Builtin.new(:inspect, 1),
         "not" => Builtin.new(:neg, 1),
         "and" => Builtin.new(:both, 2),
         "or" => Builtin.new(:either, 2),
@@ -53,16 +54,32 @@ defmodule Signo.StdLib do
         "ln" => Builtin.new(:ln, 1),
         "log" => Builtin.new(:log, 2),
         "logn" => Builtin.new(:logn, 2),
-        "concat" => Builtin.new(:concat, 2)
+        "length" => Builtin.new(:length, 1),
+        "upcase" => Builtin.new(:upcase, 1),
+        "downcase" => Builtin.new(:downcase, 1),
+        "capitalize" => Builtin.new(:capitalize, 1),
+        "trim" => Builtin.new(:trim, 1),
+        "concat" => Builtin.new(:concat, 2),
+        "first" => Builtin.new(:first, 1),
+        "last" => Builtin.new(:last, 1),
+        "elem" => Builtin.new(:elem, 2),
+        "push" => Builtin.new(:push, 2),
+        "pop" => Builtin.new(:pop, 2),
+        "sum" => Builtin.new(:sum, 1),
+        "product" => Builtin.new(:product, 1),
+        "join" => Builtin.new(:join, 2),
       }
     }
   end
 
   defguardp is_value(a)
-    when is_struct(a, Number)
-    or is_struct(a, String)
+    when is_struct(a, Nil)
+    or is_struct(a, Number)
     or is_struct(a, Atom)
+    or is_struct(a, String)
     or is_struct(a, List)
+    or is_struct(a, Lambda)
+    or is_struct(a, Builtin)
 
   defguardp both_numbers(a, b) when is_struct(a, Number) and is_struct(b, Number)
   defguardp both_strings(a, b) when is_struct(a, String) and is_struct(b, String)
@@ -75,17 +92,12 @@ defmodule Signo.StdLib do
       sig> (print 10)
       10
       #ok
-      sig>
 
   """
   @doc section: :general
   @spec print(AST.value()) :: Atom.t()
-  def print(%String{value: value}) do
-    print(value)
-  end
-
-  def print(node) do
-    Atom.new(IO.puts(node))
+  def print(value) when is_value(value) do
+    value |> IO.puts() |> Atom.new()
   end
 
   @doc """
@@ -102,7 +114,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :numbers
   @spec neg(AST.value()) :: Atom.t()
-  def neg(literal) do
+  def neg(literal) when is_value(literal) do
     Atom.new(not truthy?(literal))
   end
 
@@ -120,7 +132,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :operators
   @spec both(AST.value(), AST.value()) :: Atom.t()
-  def both(a, b) do
+  def both(a, b) when both_values(a, b) do
     Atom.new(truthy?(a) and truthy?(b))
   end
 
@@ -138,7 +150,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :operators
   @spec either(AST.value(), AST.value()) :: Atom.t()
-  def either(a, b) do
+  def either(a, b) when both_values(a, b) do
     Atom.new(truthy?(a) or truthy?(b))
   end
 
@@ -156,7 +168,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :operators
   @spec neither(AST.value(), AST.value()) :: Atom.t()
-  def neither(a, b) do
+  def neither(a, b) when both_values(a, b) do
     Atom.new(not (truthy?(a) and truthy?(b)))
   end
 
@@ -176,7 +188,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :operators
   @spec xor(AST.value(), AST.value()) :: Atom.t()
-  def xor(a, b) do
+  def xor(a, b) when both_values(a, b) do
     Atom.new((truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a)))
   end
 
@@ -522,6 +534,71 @@ defmodule Signo.StdLib do
   end
 
   @doc """
+  Returns the number of Unicode graphemes in a UTF-8 string.
+
+      sig> (length 'hellö')
+      5
+
+  """
+  @doc section: :strings
+  @spec length(String.t()) :: Number.t()
+  def length(%String{value: a}) do
+    a |> Elixir.String.length() |> Number.new()
+  end
+
+  @doc """
+  Converts all characters in the given string to lowercase.
+
+      sig> (downcase 'HELLÖ')
+      'hellö'
+
+  """
+  @doc section: :strings
+  @spec downcase(String.t()) :: String.t()
+  def downcase(%String{value: str}) do
+    str |> Elixir.String.downcase() |> String.new()
+  end
+
+  @doc """
+  Converts all characters in the given string to uppercase.
+
+      sig> (upcase 'hellö')
+      'HELLÖ'
+
+  """
+  @doc section: :strings
+  @spec upcase(String.t()) :: String.t()
+  def upcase(%String{value: str}) do
+    str |> Elixir.String.upcase() |> String.new()
+  end
+
+  @doc """
+  Converts the first character in the given string to uppercase and the remainder to lowercase.
+
+      sig> (capitalize 'olá')
+      'Olá'
+
+  """
+  @doc section: :strings
+  @spec capitalize(String.t()) :: String.t()
+  def capitalize(%String{value: str}) do
+    str |> Elixir.String.capitalize() |> String.new()
+  end
+
+  @doc """
+  Returns a string where all leading and trailing Unicode whitespaces have been removed.
+
+      sig> (trim '   signo  ')
+      'signo'
+
+  """
+  @doc section: :strings
+  @spec trim(String.t()) :: String.t()
+  def trim(%String{value: str}) do
+    str |> Elixir.String.trim() |> String.new()
+  end
+
+  @doc """
   Concatenates two strings or two lists.
 
       sig> (concat 'hell' 'o')
@@ -540,5 +617,129 @@ defmodule Signo.StdLib do
   @spec concat(List.t(), List.t()) :: List.t()
   def concat(a, b) when both_lists(a, b) do
     List.new(a.expressions ++ b.expressions)
+  end
+
+  @doc """
+  Returns the first item of a list.
+
+      sig> (first (list 'hell' 'o'))
+      'hell'
+
+  """
+  @doc section: :lists
+  @spec first(List.t()) :: AST.value()
+  def first(%List{expressions: []}), do: Nil.new()
+  def first(%List{expressions: [head | _]}), do: head
+
+  @doc """
+  Returns the last item of a list.
+
+      sig> (last (list 'hell' 'o'))
+      'o'
+      sig> (last (list))
+      ()
+
+  """
+  @doc section: :lists
+  @spec last(List.t()) :: AST.value()
+  def last(%List{expressions: expressions}) do
+    Elixir.List.last(expressions, Nil.new())
+  end
+
+  @doc """
+  Returns the last item of a list.
+
+      sig> (elem (list 'hell' 'o') 1)
+      'o'
+      sig> (elem (list 'hell' 'o') 2)
+      ()
+
+  """
+  @doc section: :lists
+  @spec elem(List.t(), Number.t()) :: AST.value()
+  def elem(%List{expressions: expressions}, %Number{value: index}) do
+    Enum.at(expressions, index, Nil.new())
+  end
+
+  @doc """
+  Pushes the given item onto the list.
+
+      sig> (push (list 'hell' 'o') 'world')
+      <list>('hell' 'o' 'world')
+
+  """
+  @doc section: :lists
+  @spec push(List.t(), AST.value()) :: List.t()
+  def push(%List{expressions: expressions}, item) when is_value(item) do
+    List.new([item | expressions])
+  end
+
+  @doc """
+  Returns a new list containing the first item of the old list
+  and the remainder of the old list.
+
+      sig> (pop (list 'hell' 'o' 'world'))
+      <list>('hell' <list>('o' 'world'))
+      sig> (tail (list))
+      <list>((), <list>())
+
+  """
+  @doc section: :lists
+  @spec pop(List.t()) :: List.t()
+  def pop(%List{expressions: []}) do
+    List.new([Nil.new(), List.new([])])
+  end
+
+  def pop(%List{expressions: [head | tail]}) do
+    List.new([head, List.new(tail)])
+  end
+
+  @doc """
+  Returns the sum of all `Signo.AST.Number`s in a `Signo.AST.List`.
+
+  Raises `Signo.Interpreter.TypeError` if one of the elements of
+  the list is not a number.
+
+      sig> (sum (list 1 2 3))
+      6
+
+  """
+  @doc section: :lists
+  @spec sum(List.t()) :: Number.t()
+  def sum(%List{expressions: expressions}) do
+    expressions
+    |> Enum.reduce(0, fn %Number{value: num}, sum -> num + sum end)
+    |> Number.new()
+  end
+
+  @doc """
+  Returns the product of all `Signo.AST.Number`s in a `Signo.AST.List`.
+
+  Raises `Signo.Interpreter.TypeError` if one of the elements of
+  the list is not a number.
+
+      sig> (product (list 2 3 4))
+      24
+
+  """
+  @doc section: :lists
+  @spec product(List.t()) :: Number.t()
+  def product(%List{expressions: expressions}) do
+    expressions
+    |> Enum.reduce(0, fn %Number{value: num}, prod -> prod * num end)
+    |> Number.new()
+  end
+
+  @doc """
+  Joins the given list into a string with the second argument as seperator.
+
+      sig> (join (list 2 3 4) ', ')
+      '2, 3, 4'
+
+  """
+  @doc section: :lists
+  @spec join(List.t(), String.t()) :: String.t()
+  def join(%List{expressions: expressions}, %String{value: joiner}) do
+    expressions |> Enum.join(joiner) |> String.new()
   end
 end

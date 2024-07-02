@@ -151,7 +151,7 @@ defmodule Signo.AST do
     end
 
     defimpl Elixir.String.Chars do
-      def to_string(%@for{value: string}), do: "'#{string}'"
+      def to_string(%@for{value: string}), do: string
     end
   end
 

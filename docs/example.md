@@ -30,11 +30,13 @@
 ; this does nothing
 (if (not #false) () (print 'oops!'))
 
-; lists :)
-(print (list 1.0 'test'))
-
 ; this is a convoluted way to print; but it works!
-((lambda (n) (print n)) 'hello world!')
+((lambda (n) (print n)) (join (list 'hello' 'world!') ', '))
+
+; lists :)
+(let x (list 1 2))
+(let x (push x 3))
+(print (sum x))
 
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
