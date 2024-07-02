@@ -79,9 +79,9 @@ defmodule Signo do
 
   ## Examples
 
-      iex> Signo.compile_file!("./main.sg")
+      iex> Signo.eval_file!("./main.sg")
       hello, world!
-      :ok
+      %Signo.Env{...}
 
   """
   @spec eval_file!(Path.t()) :: Env.t()
@@ -98,9 +98,9 @@ defmodule Signo do
 
   ## Examples
 
-      iex> Signo.compile_source!("(print 69)")
+      iex> Signo.eval_source!("(print 69)")
       69
-      :ok
+      %Signo.Env{...}
 
   """
   @spec eval_source!(String.t()) :: Env.t()
