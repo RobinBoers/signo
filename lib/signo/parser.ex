@@ -44,7 +44,7 @@ defmodule Signo.Parser do
     case token do
       %Token{type: {:literal, value}} -> {parse_literal(value), rest}
       %Token{type: :symbol} -> {Symbol.new(token.lexeme, token.pos), rest}
-      %Token{type: :opening} -> parse_list(rest, token.pos)
+      %Token{type: :opening} -> parse_list(rest, [], token.pos)
       _ -> raise ParseError, token
     end
   end
@@ -57,56 +57,61 @@ defmodule Signo.Parser do
     end
   end
 
-  defp parse_list(tokens = [token | rest], collected \\ [], pos) do
-    case token do
-      %Token{type: :closing} when collected == [] ->
-        {Nil.new(), rest}
+  defp parse_list([%Token{type: :closing} | rest], [], _) do
+    {Nil.new(), rest}
+  end
 
-      %Token{type: :closing} ->
-        {collected |> Enum.reverse() |> Procedure.new(pos), rest}
+  defp parse_list([%Token{type: :closing} | rest], collected, pos) do
+    {collected |> Enum.reverse() |> Procedure.new(pos), rest}
+  end
 
-      %Token{type: {:keyword, :do}} when collected == [] ->
-        {proc, rest} = parse_list(rest, pos)
-        {Block.new(proc.expressions), rest}
+  defp parse_list([%Token{type: {:keyword, :do}} | rest], [], pos) do
+    {proc, rest} = parse_list(rest, [], pos)
+    {Block.new(proc.expressions), rest}
+  end
 
-      %Token{type: {:keyword, :list}} when collected == [] ->
-        {proc, rest} = parse_list(rest, pos)
-        {List.new(proc.expressions), rest}
+  defp parse_list([%Token{type: {:keyword, :list}} | rest], [], pos) do
+    {proc, rest} = parse_list(rest, [], pos)
+    {List.new(proc.expressions), rest}
+  end
 
-      %Token{type: {:keyword, :if}} when collected == [] ->
-        {condition, rest} = parse_expression(rest)
-        {then, rest} = parse_expression(rest)
-        {otherwise, rest} = maybe_parse_expression(rest)
-        {_, rest} = expect(rest, :closing)
+  defp parse_list([%Token{type: {:keyword, :if}} | rest], [], _) do
+    {condition, rest} = parse_expression(rest)
+    {then, rest} = parse_expression(rest)
+    {otherwise, rest} = maybe_parse_expression(rest)
+    {_, rest} = expect(rest, :closing)
 
-        {If.new(condition, then, otherwise), rest}
+    {If.new(condition, then, otherwise), rest}
+  end
 
-      %Token{type: {:keyword, :let}} when collected == [] ->
-        {%Token{lexeme: ref}, rest} = expect(rest, :symbol)
-        {expression, rest} = parse_expression(rest)
-        {_, rest} = expect(rest, :closing)
+  defp parse_list([%Token{type: {:keyword, :let}} | rest], [], _) do
+    {%Token{lexeme: ref}, rest} = expect(rest, :symbol)
+    {expression, rest} = parse_expression(rest)
+    {_, rest} = expect(rest, :closing)
 
-        {Let.new(ref, expression), rest}
+    {Let.new(ref, expression), rest}
+  end
 
-      %Token{type: {:keyword, :lambda}} when collected == [] ->
-        {args, rest} = parse_arguments(rest)
-        {body, rest} = parse_expression(rest)
-        {_, rest} = expect(rest, :closing)
+  defp parse_list([%Token{type: {:keyword, :lambda}} | rest], [], _) do
+    {args, rest} = parse_arguments(rest)
+    {body, rest} = parse_expression(rest)
+    {_, rest} = expect(rest, :closing)
 
-        {Lambda.new(args, body), rest}
+    {Lambda.new(args, body), rest}
+  end
 
-      %Token{type: {:keyword, :def}} when collected == [] ->
-        {%Token{lexeme: ref}, rest} = expect(rest, :symbol)
-        {args, rest} = parse_arguments(rest)
-        {body, rest} = parse_expression(rest)
-        {_, rest} = expect(rest, :closing)
+  defp parse_list([%Token{type: {:keyword, :def}} | rest], [], _) do
+    {%Token{lexeme: ref}, rest} = expect(rest, :symbol)
+    {args, rest} = parse_arguments(rest)
+    {body, rest} = parse_expression(rest)
+    {_, rest} = expect(rest, :closing)
 
-        {Let.new(ref, Lambda.new(args, body)), rest}
+    {Let.new(ref, Lambda.new(args, body)), rest}
+  end
 
-      _ ->
-        {expression, rest} = parse_expression(tokens)
-        parse_list(rest, [expression | collected], pos)
-    end
+  defp parse_list(tokens, collected, pos) do
+    {expression, rest} = parse_expression(tokens)
+    parse_list(rest, [expression | collected], pos)
   end
 
   defp parse_arguments(tokens) do
