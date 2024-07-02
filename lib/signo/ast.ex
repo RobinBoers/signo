@@ -16,7 +16,10 @@ defmodule Signo.AST do
           __MODULE__.Procedure.t()
           | __MODULE__.Block.t()
           | __MODULE__.Nil.t()
-          | __MODULE__.Literal.t()
+          | __MODULE__.Number.t()
+          | __MODULE__.Atom.t()
+          | __MODULE__.String.t()
+          | __MODULE__.List.t()
           | __MODULE__.Symbol.t()
           | __MODULE__.If.t()
           | __MODULE__.Let.t()
@@ -27,14 +30,18 @@ defmodule Signo.AST do
   A reference is a key by which a `t:value/0` can
   be lookup up in the `Signo.Env`.
   """
-  @type ref :: String.t()
+  @type ref :: binary()
 
   @typedoc """
   A value is an expression that cannot be further
   simplied by evaluating it.
   """
-  @type value :: __MODULE__.Nil.t()
-          | __MODULE__.Literal.t()
+  @type value ::
+          __MODULE__.Nil.t()
+          | __MODULE__.Number.t()
+          | __MODULE__.Atom.t()
+          | __MODULE__.String.t()
+          | __MODULE__.List.t()
           | __MODULE__.Lambda.t()
           | __MODULE__.Builtin.t()
 
@@ -86,33 +93,89 @@ defmodule Signo.AST do
       %__MODULE__{}
     end
 
-    defimpl String.Chars do
+    defimpl Elixir.String.Chars do
       def to_string(%@for{}), do: "()"
     end
   end
 
-  defmodule Literal do
+  defmodule Number do
     @moduledoc """
-    A literal value, as an elixir `t:term/0`.
+    A number value.
     """
 
-    @type value :: binary() | number() | atom()
-
-    @enforce_keys [:value]
-    defstruct [:value]
-
-    @type t() :: %__MODULE__{value: value()}
-    @type t(type) :: %__MODULE__{value: type}
-
-    @spec new(value()) :: t()
-    def new(value) do
-      %__MODULE__{value: value}
+    typedstruct enforuce: true do
+      field :value, number()
     end
 
-    defimpl String.Chars do
-      def to_string(%@for{value: value}) when is_atom(value), do: "##{value}"
-      def to_string(%@for{value: value}) when is_binary(value), do: "'#{value}'"
-      def to_string(%@for{value: value}), do: "#{value}"
+    @spec new(number()) :: t()
+    def new(number) do
+      %__MODULE__{value: number}
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{value: number}), do: "#{number}"
+    end
+  end
+
+  defmodule Atom do
+    @moduledoc """
+    An atom value.
+    """
+
+    typedstruct enforuce: true do
+      field :value, atom()
+    end
+
+    @spec new(atom()) :: t()
+    def new(atom) do
+      %__MODULE__{value: atom}
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{value: atom}), do: "##{atom}"
+    end
+  end
+
+  defmodule String do
+    @moduledoc """
+    A string value.
+    """
+
+    typedstruct enforuce: true do
+      field :value, binary()
+    end
+
+    @spec new(binary()) :: t()
+    def new(string) do
+      %__MODULE__{value: string}
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{value: string}), do: "'#{string}'"
+    end
+  end
+
+  defmodule List do
+    @moduledoc """
+    A data structure holding a list of `t:Signo.AST.value/0`.
+
+    Internally implemented as an Elixir list, which is in turn
+    implemented a linked list.
+    """
+
+    typedstruct enforuce: true do
+      field :expressions, [AST.expression()]
+    end
+
+    @spec new([AST.expression()]) :: t()
+    def new(expressions) do
+      %__MODULE__{expressions: expressions}
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{expressions: expressions}) do
+        "<list>(#{Enum.join(expressions, " ")})"
+      end
     end
   end
 
@@ -131,7 +194,7 @@ defmodule Signo.AST do
       %__MODULE__{reference: ref, pos: pos}
     end
 
-    defimpl String.Chars do
+    defimpl Elixir.String.Chars do
       def to_string(%@for{reference: ref}), do: ref
     end
   end
@@ -195,9 +258,9 @@ defmodule Signo.AST do
       }
     end
 
-    defimpl String.Chars do
+    defimpl Elixir.String.Chars do
       def to_string(%@for{arguments: args}) do
-        "<lambda>(#{args |> Enum.map(&(&1.reference)) |> Enum.join(" ")} -> ...)"
+        "<lambda>(#{Enum.map_join(args, " ", & &1.reference)} -> ...)"
       end
     end
   end
@@ -222,7 +285,7 @@ defmodule Signo.AST do
       }
     end
 
-    defimpl String.Chars do
+    defimpl Elixir.String.Chars do
       def to_string(%@for{definition: definition}), do: "<builtin>(#{definition})"
     end
   end

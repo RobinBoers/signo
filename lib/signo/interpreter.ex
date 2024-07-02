@@ -6,7 +6,20 @@ defmodule Signo.Interpreter do
   alias Signo.Env
   alias Signo.StdLib
 
-  alias Signo.AST.{Procedure, Block, Nil, Literal, Symbol, If, Let, Lambda, Builtin}
+  alias Signo.AST.{
+    Procedure,
+    Block,
+    Nil,
+    Number,
+    Atom,
+    String,
+    List,
+    Symbol,
+    If,
+    Let,
+    Lambda,
+    Builtin
+  }
 
   defmodule RuntimeError do
     @moduledoc """
@@ -64,6 +77,8 @@ defmodule Signo.Interpreter do
     end
   end
 
+  @values [Nil, Number, Atom, String, Lambda, Builtin]
+
   @spec evaluate!(AST.t()) :: {AST.value(), Env.t()}
   def evaluate!(ast) do
     evaluate(ast.expressions, StdLib.kernel() |> Env.new())
@@ -96,9 +111,13 @@ defmodule Signo.Interpreter do
     {%Lambda{lambda | closure: Env.new(env)}, env}
   end
 
-  defp eval(%node{} = literal, env)
-       when node in [Nil, Literal, Lambda, Builtin] do
-    {literal, env}
+  defp eval(%List{expressions: expressions}, env) do
+    {expressions, env} = eval_list(expressions, env)
+    {%List{expressions: expressions}, env}
+  end
+
+  defp eval(%node{} = value, env) when node in @values do
+    {value, env}
   end
 
   defp eval(%If{} = branch, env) do
@@ -135,7 +154,7 @@ defmodule Signo.Interpreter do
         raise ArgumentError, defined: arity, given: params, position: proc.pos
 
       [%Builtin{definition: definition} | params] ->
-        {apply(StdLib, definition, params) |> Literal.new(), env}
+        {apply(StdLib, definition, params), env}
 
       [node | _] ->
         raise RuntimeError, message: "#{node} is not a function", position: proc.pos
@@ -160,8 +179,8 @@ defmodule Signo.Interpreter do
 
   def truthy?(object) do
     case object do
-      %Literal{value: true} -> true
-      %Literal{value: false} -> false
+      %Atom{value: true} -> true
+      %Atom{value: false} -> false
       %Nil{} -> false
       _ -> true
     end

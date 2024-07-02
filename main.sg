@@ -30,6 +30,9 @@
 ; this is a convoluted way to print; but it works!
 ((lambda (n) (print n)) 'hello world!')
 
+; lists :)
+(print (list 1.0 'test'))
+
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
 (print (do
@@ -39,3 +42,4 @@
 ; y is undefined here because it's only defined in the block scope
 (print 'gonna crash now...')
 (print y)
+

@@ -3,7 +3,7 @@ defmodule Signo.Parser do
 
   alias Signo.Token
   alias Signo.AST
-  alias Signo.AST.{Procedure, Block, Nil, Literal, Symbol, If, Let, Lambda}
+  alias Signo.AST.{Procedure, Block, Nil, Number, Atom, String, List, Symbol, If, Let, Lambda}
 
   defmodule ParseError do
     @moduledoc """
@@ -42,10 +42,18 @@ defmodule Signo.Parser do
 
   defp parse_expression([token | rest]) do
     case token do
-      %Token{type: {:literal, value}} -> {Literal.new(value), rest}
+      %Token{type: {:literal, value}} -> {parse_literal(value), rest}
       %Token{type: :symbol} -> {Symbol.new(token.lexeme, token.pos), rest}
       %Token{type: :opening} -> parse_list(rest, token.pos)
       _ -> raise ParseError, token
+    end
+  end
+
+  defp parse_literal(value) do
+    cond do
+      is_number(value) -> Number.new(value)
+      is_atom(value) -> Atom.new(value)
+      is_binary(value) -> String.new(value)
     end
   end
 
@@ -60,6 +68,10 @@ defmodule Signo.Parser do
       %Token{type: {:keyword, :do}} when collected == [] ->
         {proc, rest} = parse_list(rest, pos)
         {Block.new(proc.expressions), rest}
+
+      %Token{type: {:keyword, :list}} when collected == [] ->
+        {proc, rest} = parse_list(rest, pos)
+        {List.new(proc.expressions), rest}
 
       %Token{type: {:keyword, :if}} when collected == [] ->
         {condition, rest} = parse_expression(rest)

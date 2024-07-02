@@ -17,7 +17,7 @@ defmodule Signo.Token do
     """
 
     field :type, type() | :error
-    field :lexeme, String.t()
+    field :lexeme, binary()
     field :pos, Position.t()
   end
 
@@ -32,15 +32,15 @@ defmodule Signo.Token do
   @typedoc """
   A valid keyword.
   """
-  @type kw :: :if | :let | :def | :lambda | :do
+  @type kw :: :if | :let | :def | :lambda | :do | :list
 
   @typedoc """
   The value of the literal as an elixir `t:term/0`.
   Example: `30_000`
   """
-  @type literal :: binary() | integer() | float() | boolean()
+  @type literal :: binary() | number() | atom()
 
-  @spec new(type(), String.t(), Position.t()) :: t()
+  @spec new(type(), binary(), Position.t()) :: t()
   def new(type, lexeme, pos) do
     %__MODULE__{
       type: type,

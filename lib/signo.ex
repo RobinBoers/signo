@@ -55,7 +55,7 @@ defmodule Signo do
 
       iex> Signo.eval_file!("./main.sg")
       hello, world!
-      {%AST.Literal{value: "hello world"}, %Signo.Env{...}}
+      {%AST.String{value: "hello world"}, %Signo.Env{...}}
 
   """
   @spec eval_file!(Path.t()) :: {AST.value(), Env.t()}
@@ -74,7 +74,7 @@ defmodule Signo do
 
       iex> Signo.eval_source!("(print 69)")
       69
-      {%AST.Literal{value: :ok}, %Signo.Env{...}}
+      {%AST.Atom{value: :ok}, %Signo.Env{...}}
 
   """
   @spec eval_source!(String.t()) :: {AST.value(), Env.t()}

@@ -21,7 +21,7 @@ defmodule Signo.Lexer do
     end
   end
 
-  @keywords ["if", "let", "def", "lambda", "do"]
+  @keywords ["if", "let", "def", "lambda", "do", "list"]
   @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">"]
 

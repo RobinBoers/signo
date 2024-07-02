@@ -30,6 +30,9 @@
 ; this does nothing
 (if (not #false) () (print 'oops!'))
 
+; lists :)
+(print (list 1.0 'test'))
+
 ; this is a convoluted way to print; but it works!
 ((lambda (n) (print n)) 'hello world!')
 
