@@ -36,7 +36,8 @@ defmodule Signo.MixProject do
       "docs/introduction.md",
       "docs/basic-types.md",
       "docs/language-features.md",
-      "docs/procedures.md"
+      "docs/procedures.md",
+      "docs/example.md"
     ],
     groups_for_modules: [
       "Standard Library": [Signo.StdLib],

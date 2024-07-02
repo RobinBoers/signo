@@ -5,7 +5,7 @@ DOC="doc"
 
 build() {
   mix compile >/dev/null
-  mix run -e "Signo.eval_file!(\"$SRC\")"
+  mix execute $SRC
 }
 
 check() {
