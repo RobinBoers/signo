@@ -14,5 +14,6 @@ docs() {
 }
 
 repl() {
+  mix compile >/dev/null
   mix run -e "Signo.repl()"
 }
