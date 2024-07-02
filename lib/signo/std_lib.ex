@@ -1,6 +1,15 @@
 defmodule Signo.StdLib do
   @moduledoc """
   Standard Library for the Signo Programming Language.
+
+  > #### A note on function names {: .neutral}
+  >
+  > Due to requirements for Elixir function names and conflicts with
+  > existing Elixir keywords and/or operators, the function names in
+  > this module are often different than the function names in Signo.
+  >
+  > All functions have a small example along them, which contains
+  > the Signo names.
   """
 
   alias Signo.Env
@@ -12,38 +21,40 @@ defmodule Signo.StdLib do
   @doc false
   @spec kernel() :: Env.t()
   def kernel do
-    %Env{scope: %{
-      "print" =>   Builtin.new(:print, 1),
-      "not" =>     Builtin.new(:neg, 2),
-      "and" =>     Builtin.new(:and, 2),
-      "or" =>      Builtin.new(:either, 2),
-      "nor" =>     Builtin.new(:neither, 2),
-      "xor" =>     Builtin.new(:xor, 2),
-      "==" =>      Builtin.new(:eq, 2),
-      "!=" =>      Builtin.new(:not_eq, 2),
-      ">" =>       Builtin.new(:gt, 2),
-      ">=" =>      Builtin.new(:gte, 2),
-      "<" =>       Builtin.new(:lt, 2),
-      "<=" =>      Builtin.new(:lte, 2),
-      "+" =>       Builtin.new(:add, 2),
-      "-" =>       Builtin.new(:sub, 2),
-      "*" =>       Builtin.new(:mult, 2),
-      "/" =>       Builtin.new(:div, 2),
-      "^" =>       Builtin.new(:pow, 2),
-      "sqrt" =>    Builtin.new(:sqrt, 1),
-      "abs" =>     Builtin.new(:abs, 1),
-      "pi" =>      Builtin.new(:pi, 0),
-      "tau" =>     Builtin.new(:tau, 0),
-      "sin" =>     Builtin.new(:sin, 1),
-      "cos" =>     Builtin.new(:cos, 1),
-      "tan" =>     Builtin.new(:tan, 1),
-      "asin" =>    Builtin.new(:asin, 1),
-      "acos" =>    Builtin.new(:acos, 1),
-      "atan" =>    Builtin.new(:atan, 1),
-      "ln" =>      Builtin.new(:ln, 1),
-      "log" =>     Builtin.new(:log, 2),
-      "logn" =>    Builtin.new(:logn, 2),
-    }}
+    %Env{
+      scope: %{
+        "print" =>   Builtin.new(:print, 1),
+        "not" =>     Builtin.new(:neg, 2),
+        "and" =>     Builtin.new(:and, 2),
+        "or" =>      Builtin.new(:either, 2),
+        "nor" =>     Builtin.new(:neither, 2),
+        "xor" =>     Builtin.new(:xor, 2),
+        "==" =>      Builtin.new(:eq, 2),
+        "!=" =>      Builtin.new(:not_eq, 2),
+        ">" =>       Builtin.new(:gt, 2),
+        ">=" =>      Builtin.new(:gte, 2),
+        "<" =>       Builtin.new(:lt, 2),
+        "<=" =>      Builtin.new(:lte, 2),
+        "+" =>       Builtin.new(:add, 2),
+        "-" =>       Builtin.new(:sub, 2),
+        "*" =>       Builtin.new(:mult, 2),
+        "/" =>       Builtin.new(:div, 2),
+        "^" =>       Builtin.new(:pow, 2),
+        "sqrt" =>    Builtin.new(:sqrt, 1),
+        "abs" =>     Builtin.new(:abs, 1),
+        "pi" =>      Builtin.new(:pi, 0),
+        "tau" =>     Builtin.new(:tau, 0),
+        "sin" =>     Builtin.new(:sin, 1),
+        "cos" =>     Builtin.new(:cos, 1),
+        "tan" =>     Builtin.new(:tan, 1),
+        "asin" =>    Builtin.new(:asin, 1),
+        "acos" =>    Builtin.new(:acos, 1),
+        "atan" =>    Builtin.new(:atan, 1),
+        "ln" =>      Builtin.new(:ln, 1),
+        "log" =>     Builtin.new(:log, 2),
+        "logn" =>    Builtin.new(:logn, 2),
+      }
+    }
   end
 
   defguardp both_literals(a, b)
@@ -64,10 +75,8 @@ defmodule Signo.StdLib do
       sig>
 
   """
-  @spec print(AST.expression()) :: Literal.t()
-  def print(literal) do
-    %Literal{value: IO.puts("#{literal}")}
-  end
+  @spec print(AST.expression()) :: Literal.value()
+  defdelegate print(item), to: IO, as: :puts
 
   @doc """
   Boolean `not` operator.
@@ -81,9 +90,9 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec neg(AST.expression()) :: Literal.t()
+  @spec neg(AST.expression()) :: Literal.value()
   def neg(literal) do
-    %Literal{value: not truthy?(literal)}
+    not truthy?(literal)
   end
 
   @doc """
@@ -98,9 +107,9 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec both(AST.expression(), AST.expression()) :: Literal.t()
+  @spec both(AST.expression(), AST.expression()) :: Literal.value()
   def both(a, b) do
-    %Literal{value: truthy?(a) and truthy?(b)}
+    truthy?(a) and truthy?(b)
   end
 
   @doc """
@@ -115,9 +124,9 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec either(AST.expression(), AST.expression()) :: Literal.t()
+  @spec either(AST.expression(), AST.expression()) :: Literal.value()
   def either(a, b) do
-    %Literal{value: truthy?(a) or truthy?(b)}
+    truthy?(a) or truthy?(b)
   end
 
   @doc """
@@ -132,9 +141,9 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec neither(AST.expression(), AST.expression()) :: Literal.t()
+  @spec neither(AST.expression(), AST.expression()) :: Literal.value()
   def neither(a, b) do
-    %Literal{value: not (truthy?(a) and truthy?(b))}
+    not (truthy?(a) and truthy?(b))
   end
 
   @doc """
@@ -151,9 +160,9 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec xor(AST.expression(), AST.expression()) :: Literal.t()
+  @spec xor(AST.expression(), AST.expression()) :: Literal.value()
   def xor(a, b) do
-    %Literal{value: (truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a))}
+    (truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a))
   end
 
   @doc """
@@ -169,10 +178,10 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec eq(Literal.t(), Literal.t()) :: Literal.t()
+  @spec eq(Literal.t(number), Literal.t(number)) :: Literal.value()
   def eq(a, b) when both_literals(a, b) do
     # TODO(robin): make this work for lambdas and builtins too.
-    %Literal{value: a.value == b.value}
+    a.value == b.value
   end
 
   @doc """
@@ -188,10 +197,10 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec not_eq(Literal.t(), Literal.t()) :: Literal.t()
+  @spec not_eq(Literal.t(), Literal.t()) :: Literal.value()
   def not_eq(a, b) when both_literals(a, b) do
     # TODO(robin): make this work for lambdas and builtins too.
-    %Literal{value: a.value != b.value}
+    a.value != b.value
   end
 
   @doc """
@@ -203,9 +212,9 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec gt(Literal.t(), Literal.t()) :: Literal.t()
+  @spec gt(Literal.t(), Literal.t()) :: Literal.value()
   def gt(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value > b.value}
+    a.value > b.value
   end
 
   @doc """
@@ -217,9 +226,9 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec gte(Literal.t(), Literal.t()) :: Literal.t()
+  @spec gte(Literal.t(), Literal.t()) :: Literal.value()
   def gte(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value >= b.value}
+    a.value >= b.value
   end
 
   @doc """
@@ -231,9 +240,9 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @spec lt(Literal.t(), Literal.t()) :: Literal.t()
+  @spec lt(Literal.t(), Literal.t()) :: Literal.value()
   def lt(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value < b.value}
+    a.value < b.value
   end
 
   @doc """
@@ -245,9 +254,9 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @spec lte(Literal.t(), Literal.t()) :: Literal.t()
+  @spec lte(Literal.t(), Literal.t()) :: Literal.value()
   def lte(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value <= b.value}
+    a.value <= b.value
   end
 
   @doc """
@@ -257,9 +266,9 @@ defmodule Signo.StdLib do
       5
 
   """
-  @spec add(Literal.t(), Literal.t()) :: Literal.t()
+  @spec add(Literal.t(), Literal.t()) :: Literal.value()
   def add(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value + b.value}
+    a.value + b.value
   end
 
   @doc """
@@ -269,9 +278,9 @@ defmodule Signo.StdLib do
       1
 
   """
-  @spec sub(Literal.t(), Literal.t()) :: Literal.t()
+  @spec sub(Literal.t(), Literal.t()) :: Literal.value()
   def sub(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value - b.value}
+    a.value - b.value
   end
 
   @doc """
@@ -281,9 +290,9 @@ defmodule Signo.StdLib do
       6
 
   """
-  @spec mult(Literal.t(), Literal.t()) :: Literal.t()
+  @spec mult(Literal.t(), Literal.t()) :: Literal.value()
   def mult(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value * b.value}
+    a.value * b.value
   end
 
   @doc """
@@ -293,9 +302,9 @@ defmodule Signo.StdLib do
       3
 
   """
-  @spec div(Literal.t(), Literal.t()) :: Literal.t()
+  @spec div(Literal.t(), Literal.t()) :: Literal.value()
   def div(a, b) when both_numbers(a, b) do
-    %Literal{value: a.value / b.value}
+    a.value / b.value
   end
 
   @doc """
@@ -305,9 +314,9 @@ defmodule Signo.StdLib do
       8
 
   """
-  @spec pow(Literal.t(), Literal.t()) :: Literal.t()
+  @spec pow(Literal.t(), Literal.t()) :: Literal.value()
   def pow(x, n) when both_numbers(x, n) do
-    %Literal{value: :math.pow(x.value, n.value)}
+    :math.pow(x.value, n.value)
   end
 
   @doc """
@@ -317,9 +326,9 @@ defmodule Signo.StdLib do
       2
 
   """
-  @spec sqrt(Literal.t()) :: Literal.t()
+  @spec sqrt(Literal.t()) :: Literal.value()
   def sqrt(x) when is_number(x.value) do
-    %Literal{value: :math.sqrt(x.value)}
+    :math.sqrt(x.value)
   end
 
   @doc """
@@ -331,9 +340,9 @@ defmodule Signo.StdLib do
       6
 
   """
-  @spec abs(Literal.t()) :: Literal.t()
-  def abs(a) when is_number(a.value) do
-    %Literal{value: Kernel.abs(a.value)}
+  @spec abs(Literal.t()) :: Literal.value()
+  def abs(x) when is_number(x.value) do
+    Kernel.abs(x.value)
   end
 
   @doc """
@@ -345,10 +354,8 @@ defmodule Signo.StdLib do
       3.14159...
 
   """
-  @spec pi() :: Literal.t()
-  def pi do
-    %Literal{value: :math.pi()}
-  end
+  @spec pi() :: Literal.value()
+  defdelegate pi, to: :math
 
   @doc """
   Ratio of the circumference of a circle to its radius.
@@ -360,10 +367,8 @@ defmodule Signo.StdLib do
       6.28318...
 
   """
-  @spec tau() :: Literal.t()
-  def tau do
-    %Literal{value: :math.tau()}
-  end
+  @spec tau() :: Literal.value()
+  defdelegate tau, to: :math
 
   @doc """
   Sine of `x` in radians.
@@ -372,9 +377,9 @@ defmodule Signo.StdLib do
       0
 
   """
-  @spec sin(Literal.t()) :: Literal.t()
+  @spec sin(Literal.t()) :: Literal.value()
   def sin(x) when is_number(x.value) do
-    %Literal{value: :math.sin(x.value)}
+    :math.sin(x.value)
   end
 
   @doc """
@@ -384,9 +389,9 @@ defmodule Signo.StdLib do
       -1
 
   """
-  @spec cos(Literal.t()) :: Literal.t()
+  @spec cos(Literal.t()) :: Literal.value()
   def cos(x) when is_number(x.value) do
-    %Literal{value: :math.cos(x.value)}
+    :math.cos(x.value)
   end
 
   @doc """
@@ -396,9 +401,9 @@ defmodule Signo.StdLib do
       1
 
   """
-  @spec tan(Literal.t()) :: Literal.t()
+  @spec tan(Literal.t()) :: Literal.value()
   def tan(x) when is_number(x.value) do
-    %Literal{value: :math.tan(x.value)}
+    :math.tan(x.value)
   end
 
   @doc """
@@ -408,9 +413,9 @@ defmodule Signo.StdLib do
       3.14159...
 
   """
-  @spec asin(Literal.t()) :: Literal.t()
+  @spec asin(Literal.t()) :: Literal.value()
   def asin(x) when is_number(x.value) do
-    %Literal{value: :math.asin(x.value)}
+    :math.asin(x.value)
   end
 
   @doc """
@@ -420,9 +425,9 @@ defmodule Signo.StdLib do
       3.14159...
 
   """
-  @spec acos(Literal.t()) :: Literal.t()
+  @spec acos(Literal.t()) :: Literal.value()
   def acos(x) when is_number(x.value) do
-    %Literal{value: :math.acos(x.value)}
+    :math.acos(x.value)
   end
 
   @doc """
@@ -432,9 +437,9 @@ defmodule Signo.StdLib do
       0
 
   """
-  @spec atan(Literal.t()) :: Literal.t()
+  @spec atan(Literal.t()) :: Literal.value()
   def atan(x) when is_number(x.value) do
-    %Literal{value: :math.atan(x.value)}
+    :math.atan(x.value)
   end
 
   @doc """
@@ -444,9 +449,9 @@ defmodule Signo.StdLib do
       0
 
   """
-  @spec ln(Literal.t()) :: Literal.t()
+  @spec ln(Literal.t()) :: Literal.value()
   def ln(x) when is_number(x.value) do
-    %Literal{value: :math.log(x.value)}
+    :math.log(x.value)
   end
 
   @doc """
@@ -456,9 +461,9 @@ defmodule Signo.StdLib do
       2
 
   """
-  @spec log(Literal.t()) :: Literal.t()
+  @spec log(Literal.t()) :: Literal.value()
   def log(x) when is_number(x.value) do
-    %Literal{value: :math.log10(x.value)}
+    :math.log10(x.value)
   end
 
   @doc """
@@ -468,8 +473,8 @@ defmodule Signo.StdLib do
       3
 
   """
-  @spec logn(Literal.t(), Literal.t()) :: Literal.t()
+  @spec logn(Literal.t(), Literal.t()) :: Literal.value()
   def logn(n, x) when both_numbers(n, x) do
-    %Literal{value: :math.log10(x.value) / :math.log10(n.value)}
+    :math.log10(x.value) / :math.log10(n.value)
   end
 end

@@ -38,9 +38,11 @@ defmodule Signo do
   """
 
   alias Signo.Token
+  alias Signo.Position
   alias Signo.Lexer
   alias Signo.Parser
   alias Signo.Interpreter
+  alias Signo.Env
   alias Signo.AST
   alias Signo.REPL
 
@@ -116,7 +118,8 @@ defmodule Signo do
 
   @doc false
   @spec lex!(String.t(), Path.t()) :: [Token.t()]
-  defdelegate lex!(source, path), to: Lexer
+  @spec lex!(String.t(), Position.t()) :: [Token.t()]
+  defdelegate lex!(source, path_or_pos), to: Lexer
 
   @doc """
   Parses a list of `Signo.Token`s into a executable AST.

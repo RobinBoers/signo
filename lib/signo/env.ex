@@ -9,24 +9,10 @@ defmodule Signo.Env do
   use TypedStruct
 
   alias Signo.AST
-
-  defmodule ReferenceError do
-    @moduledoc """
-    Raised when the interpreter tries to access a reference to
-    a non-existant or undefined variable or function.
-    """
-    defexception [:message, :reference]
-
-    @impl true
-    def exception(ref) do
-      %__MODULE__{
-        message: "'#{ref}' is undefined",
-        reference: ref
-      }
-    end
-  end
+  alias Signo.Interpreter.ReferenceError
 
   @type scope :: %{AST.ref() => AST.expression()}
+  @type definition :: AST.expression() | :undefined
 
   typedstruct enforce: true do
     field :parent, t() | nil, default: nil
@@ -42,19 +28,19 @@ defmodule Signo.Env do
   end
 
   @spec assign(t(), AST.ref(), AST.expression()) :: t()
-  def assign(%__MODULE__{} = env, ref, value) do
+  def assign(env = %__MODULE__{}, ref, value) do
     %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
   end
 
-  @spec lookup!(nil, AST.ref()) :: no_return()
-  def lookup!(nil, ref) do
-    raise ReferenceError, ref
+  @spec lookup!(nil, AST.ref(), Position.t()) :: no_return()
+  def lookup!(nil, ref, pos) do
+    raise ReferenceError, reference: ref, position: pos
   end
 
-  @spec lookup!(t(), AST.ref()) :: AST.expression()
-  def lookup!(%__MODULE__{} = env, ref) do
+  @spec lookup!(t(), AST.ref(), Position.t()) :: definition()
+  def lookup!(env = %__MODULE__{}, ref, pos) do
     if value = Map.get(env.scope, ref),
       do: value,
-      else: lookup!(env.parent, ref)
+      else: lookup!(env.parent, ref, pos)
   end
 end

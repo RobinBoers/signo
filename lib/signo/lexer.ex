@@ -9,14 +9,14 @@ defmodule Signo.Lexer do
     Raised when the compiler finds an unexpected character or
     lexeme while tokenizing the source code.
     """
-    defexception [:message, :lexeme, :position]
+    defexception [:message, :lexeme, :pos]
 
     @impl true
-    def exception(lexeme: lexeme, position: pos) do
+    def exception(lexeme: lexeme, pos: pos) do
       %__MODULE__{
         message: "unexpected #{lexeme} at #{pos}",
         lexeme: lexeme,
-        position: pos
+        pos: pos
       }
     end
   end
@@ -35,12 +35,19 @@ defmodule Signo.Lexer do
   defguardp is_hash(ch) when ch == "#"
   defguardp is_dot(ch) when ch == "."
 
-  @spec lex!(String.t(), Position.path()) :: [Token.t()]
-  def lex!(source, path \\ :nofile) do
+  @spec lex!(String.t(), Path.t()) :: [Token.t()]
+  @spec lex!(String.t(), Position.t()) :: [Token.t()]
+  def lex!(source, path_or_pos \\ %Position{})
+
+  def lex!(source, path) when is_binary(path) do
+    lex!(source, Position.new(path))
+  end
+
+  def lex!(source, pos = %Position{}) do
     source
     |> String.replace("\n\r", "\n")
     |> String.graphemes()
-    |> lex(Position.new(path))
+    |> lex(pos)
   end
 
   @spec lex([String.grapheme()], [Token.t()], Position.t()) :: [Token.t()]
@@ -121,7 +128,7 @@ defmodule Signo.Lexer do
       case ch do
         "(" -> Token.new(:opening, ch, pos)
         ")" -> Token.new(:closing, ch, pos)
-        _ -> raise LexError, lexeme: ch, position: pos
+        _ -> raise LexError, lexeme: ch, pos: pos
       end
 
     lex(rest, [token | tokens], inc(pos, ch))

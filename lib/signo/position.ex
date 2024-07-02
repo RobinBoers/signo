@@ -1,13 +1,13 @@
 defmodule Signo.Position do
   @moduledoc """
-  Records the position of a character or token in the original source code.
+  Records the pos of a character or token in the original source code.
   """
   use TypedStruct
 
   @type path :: Path.t() | :nofile
 
   typedstruct enforce: true do
-    field :path, path()
+    field :path, path(), default: :nofile
     field :row, non_neg_integer(), default: 1
     field :col, non_neg_integer(), default: 1
   end
@@ -17,8 +17,13 @@ defmodule Signo.Position do
     %__MODULE__{path: path}
   end
 
+  @spec new(path(), number()) :: t()
+  def new(path, row) when is_number(row) do
+    %__MODULE__{new(path) | row: row}
+  end
+
   @doc """
-  Updates the recorded position given either a single grapheme,
+  Updates the recorded pos given either a single grapheme,
   or a collected list of graphemes.
   """
   @spec increment(t(), [String.grapheme()]) :: t()

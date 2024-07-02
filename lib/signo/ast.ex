@@ -4,14 +4,18 @@ defmodule Signo.AST do
   """
   use TypedStruct
 
+  alias __MODULE__
+  alias Signo.Position
+
   @type expression ::
-          __MODULE__.Call.t()
-          | __MODULE__.Block.t()
+          __MODULE__.Procedure.t()
+          | __MODULE__.Nil.t()
           | __MODULE__.Literal.t()
           | __MODULE__.Symbol.t()
           | __MODULE__.If.t()
           | __MODULE__.Let.t()
           | __MODULE__.Lambda.t()
+          | __MODULE__.Builtin.t()
 
   @type ref :: String.t()
 
@@ -21,17 +25,17 @@ defmodule Signo.AST do
 
   defmodule Procedure do
     @moduledoc """
-    A list of expressions that evaluates to a
-    procedure call.
+    A list of expressions that evaluates to a procedure call.
     """
 
     typedstruct enforce: true do
       field :expressions, [AST.expression()]
+      field :pos, Position.t()
     end
 
-    @spec new([AST.expression()]) :: t()
-    def new(expressions) do
-      %__MODULE__{expressions: expressions}
+    @spec new([AST.expression()], Position.t()) :: t()
+    def new(expressions, pos) do
+      %__MODULE__{expressions: expressions, pos: pos}
     end
   end
 
@@ -47,6 +51,10 @@ defmodule Signo.AST do
     def new do
       %__MODULE__{}
     end
+
+    defimpl String.Chars do
+      def to_string(%@for{}), do: "()"
+    end
   end
 
   defmodule Literal do
@@ -54,11 +62,13 @@ defmodule Signo.AST do
     A literal value, as an elixir `t:term/0`.
     """
 
-    @type value :: binary() | integer() | float() | boolean()
+    @type value :: binary() | number() | atom()
 
-    typedstruct enforce: true do
-      field :value, value()
-    end
+    @enforce_keys [:value]
+    defstruct [:value]
+
+    @type t() :: %__MODULE__{value: value()}
+    @type t(type) :: %__MODULE__{value: type}
 
     @spec new(value()) :: t()
     def new(value) do
@@ -77,11 +87,12 @@ defmodule Signo.AST do
 
     typedstruct enforce: true do
       field :reference, AST.ref()
+      field :pos, Position.t()
     end
 
-    @spec new(AST.ref()) :: t()
-    def new(ref) do
-      %__MODULE__{reference: ref}
+    @spec new(AST.ref(), Position.t()) :: t()
+    def new(ref, pos) do
+      %__MODULE__{reference: ref, pos: pos}
     end
 
     defimpl String.Chars do
@@ -150,7 +161,7 @@ defmodule Signo.AST do
 
   defmodule Builtin do
     @moduledoc """
-    A literal value, as an elixir `t:term/0`.
+    A reference to a function in the `Signo.StdLib`.
     """
 
     @type definition :: atom()

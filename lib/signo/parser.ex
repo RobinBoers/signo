@@ -19,9 +19,9 @@ defmodule Signo.Parser do
     end
 
     @impl true
-    def exception(%Token{} = token) do
+    def exception(token = %Token{}) do
       %__MODULE__{
-        message: "unexpected '#{token.lexeme}' at #{token.position}",
+        message: "unexpected '#{token.lexeme}' at #{token.pos}",
         token: token
       }
     end
@@ -44,19 +44,19 @@ defmodule Signo.Parser do
   defp parse_expression([token | rest]) do
     case token do
       %Token{type: {:literal, value}} -> {Literal.new(value), rest}
-      %Token{type: :symbol, lexeme: ref} -> {Symbol.new(ref), rest}
-      %Token{type: :opening} -> parse_list(rest)
+      %Token{type: :symbol} -> {Symbol.new(token.lexeme, token.pos), rest}
+      %Token{type: :opening} -> parse_list(rest, token.pos)
       _ -> raise ParseError, token
     end
   end
 
-  defp parse_list(tokens = [token | rest], collected \\ []) do
+  defp parse_list(tokens = [token | rest], collected \\ [], pos) do
     case token do
       %Token{type: :closing} when collected == [] ->
         {Nil.new(), rest}
 
       %Token{type: :closing} ->
-        {collected |> Enum.reverse() |> Procedure.new(), rest}
+        {collected |> Enum.reverse() |> Procedure.new(pos), rest}
 
       %Token{type: {:keyword, :if}} when collected == [] ->
         {condition, rest} = parse_expression(rest)
@@ -90,7 +90,7 @@ defmodule Signo.Parser do
 
       _ ->
         {expression, rest} = parse_expression(tokens)
-        parse_list(rest, [expression | collected])
+        parse_list(rest, [expression | collected], pos)
     end
   end
 
@@ -104,8 +104,8 @@ defmodule Signo.Parser do
       %Token{type: :closing} ->
         {Enum.reverse(collected), rest}
 
-      %Token{type: :symbol, lexeme: ref} ->
-        parse_arguments(rest, [Symbol.new(ref) | collected])
+      %Token{type: :symbol, lexeme: ref, pos: pos} ->
+        parse_arguments(rest, [Symbol.new(ref, pos) | collected])
 
       _ ->
         raise ParseError, token
@@ -124,7 +124,7 @@ defmodule Signo.Parser do
       {token, rest}
     else
       raise ParseError,
-            "expected #{type}, but got: '#{token.lexeme}' at #{token.position}"
+            "expected #{type}, but got: '#{token.lexeme}' at #{token.pos}"
     end
   end
 end

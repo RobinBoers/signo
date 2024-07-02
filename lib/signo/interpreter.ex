@@ -13,6 +13,11 @@ defmodule Signo.Interpreter do
     while evaluating the AST.
     """
     defexception [:message]
+
+    @impl true
+    def exception(message: message, position: pos) do
+      %__MODULE__{message: "#{message} at #{pos}"}
+    end
   end
 
   defmodule ArgumentError do
@@ -22,9 +27,9 @@ defmodule Signo.Interpreter do
     defexception [:message]
 
     @impl true
-    def exception(defined: defined, given: given) do
+    def exception(defined: defined, given: given, position: pos) do
       %__MODULE__{
-        message: "function takes #{length(defined)}, but #{length(given)} were given"
+        message: "function takes #{length(defined)}, but #{length(given)} were given at #{pos}"
       }
     end
   end
@@ -35,13 +40,30 @@ defmodule Signo.Interpreter do
     for a function.
     """
     defexception [:message]
+
+    @impl true
+    def exception(position: pos) do
+      %__MODULE__{message: "mismatched types at #{pos}"}
+    end
   end
 
-  @literals [Literal, Lambda, Nil]
+  defmodule ReferenceError do
+    @moduledoc """
+    Raised when the interpreter tries to access a reference to
+    a non-existant or undefined variable or function.
+    """
+    defexception [:message, :reference]
 
-  @cached_true %Literal{value: true}
-  @cached_false %Literal{value: false}
-  @cached_nil %Nil{}
+    @impl true
+    def exception(reference: ref, position: pos) do
+      %__MODULE__{
+        message: "'#{ref}' is undefined at #{pos}",
+        reference: ref
+      }
+    end
+  end
+
+  @literals [Literal, Lambda, Builtin, Nil]
 
   @spec evaluate!(AST.t()) :: Env.t()
   def evaluate!(ast) do
@@ -66,24 +88,23 @@ defmodule Signo.Interpreter do
     {value, Env.assign(env, ref, value)}
   end
 
-  defp eval(%Symbol{reference: ref}, env) do
-    {Env.lookup!(env, ref), env}
+  defp eval(%Symbol{reference: ref, pos: pos}, env) do
+    {Env.lookup!(env, ref, pos), env}
   end
 
-  defp eval(%node{} = literal, env)
-      when node in @literals do
+  defp eval(literal = %node{}, env) when node in @literals do
     {literal, env}
   end
 
-  defp eval(%If{} = branch, env) do
+  defp eval(branch = %If{}, env) do
     scoped(&eval_if/2, branch, env)
   end
 
-  defp eval(%Procedure{} = call, env) do
-    scoped(&eval_prodecure/2, call, env)
+  defp eval(proc = %Procedure{}, env) do
+    scoped(&eval_prodecure/2, proc, env)
   end
 
-  defp eval_if(%If{} = branch, env) do
+  defp eval_if(branch = %If{}, env) do
     {value, env} = eval(branch.condition, env)
 
     if truthy?(value),
@@ -91,25 +112,27 @@ defmodule Signo.Interpreter do
       else: eval(branch.else, env)
   end
 
-  defp eval_prodecure(%Procedure{expressions: expressions}, env) do
-    {expressions, env} = eval_list(expressions, env)
+  defp eval_prodecure(proc = %Procedure{}, env) do
+    {expressions, env} = eval_list(proc.expressions, env)
 
     case Enum.reverse(expressions) do
       [%Lambda{arguments: args} | params] when length(params) != length(args) ->
-        raise ArgumentError, defined: args, given: params
+        raise ArgumentError, defined: args, given: params, position: proc.pos
 
       [%Lambda{arguments: args, body: body} | params] ->
         eval(body, Env.new(env, Enum.zip(args, params)))
 
       [%Builtin{arity: arity} | params] when length(params) != arity ->
-        raise ArgumentError, defined: 1..arity, given: params
+        raise ArgumentError, defined: 1..arity, given: params, position: proc.pos
 
       [%Builtin{definition: definition} | params] ->
-        {apply(StdLib, definition, params), env}
+        {apply(StdLib, definition, params) |> Literal.new(), env}
 
       [node | _] ->
-        raise RuntimeError, "#{node} is not a function"
+        raise RuntimeError, message: "#{node} is not a function", position: proc.pos
     end
+  rescue
+    FunctionClauseError -> reraise TypeError, position: proc.pos
   end
 
   defp eval_list(expressions, env) do
@@ -126,9 +149,9 @@ defmodule Signo.Interpreter do
 
   def truthy?(object) do
     case object do
-      @cached_true -> true
-      @cached_false -> false
-      @cached_nil -> false
+      %Literal{value: true} -> true
+      %Literal{value: false} -> false
+      %Nil{} -> false
       _ -> true
     end
   end
