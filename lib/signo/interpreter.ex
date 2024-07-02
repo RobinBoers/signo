@@ -75,6 +75,7 @@ defmodule Signo.Interpreter do
   end
 
   @spec evaluate([AST.expression()], Env.t()) :: {AST.value(), Env.t()}
+  defp evaluate([], env), do: {Nil.new(), env}
   defp evaluate([node], env), do: eval(node, env)
 
   defp evaluate([node | rest], env) do
