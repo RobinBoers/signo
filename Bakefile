@@ -1,8 +1,11 @@
 #!/bin/bash
 
+SRC="main.sg"
+DOC="doc"
+
 build() {
   mix compile >/dev/null
-  mix run -e "Signo.main()"
+  mix run -e "Signo.eval_file!(\"$SRC\")"
 }
 
 check() {
@@ -10,10 +13,24 @@ check() {
 }
 
 docs() {
-  mix docs && open doc/index.html
+  mix docs && open $DOC/index.html
 }
 
 repl() {
   mix compile >/dev/null
   mix run -e "Signo.repl()"
+}
+
+# Temporary
+
+publish() {
+  mix docs
+  trap p:post_publish EXIT
+  mv $DOC signo
+  scp -r signo du11:public_ftp/
+  p:post_publish
+}
+
+p:post_publish() {
+  rm -rf signo
 }
