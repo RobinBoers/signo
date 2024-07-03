@@ -173,8 +173,8 @@ defmodule Signo.Interpreter do
   end
 
   defp scoped(parser, term, env) do
-    {value, scoped} = parser.(term, Env.new(env))
-    {value, scoped.parent}
+    {value, _} = parser.(term, Env.new(env))
+    {value, env}
   end
 
   def truthy?(object) do
