@@ -86,6 +86,29 @@ defmodule Signo do
   end
 
   @doc """
+  Shorthand for `lex!/1` and `parse!/1`.
+
+  Given a string of Signo source code, returns a valid
+  AST that can be evaluated using `evaluate!/1`.
+
+  ## Examples
+
+      iex> evaluate!(~l"(print 10)")
+      {%Signo.AST.Atom{value: :ok}, %Signo.AST.Env{}}
+
+  """
+  @spec sigil_l(String.t(), term()) :: AST.t()
+  def sigil_l(source, []) do
+    source
+    |> lex!()
+    |> parse!()
+  end
+
+  @doc false
+  @spec sigil_L(String.t(), term()) :: AST.t()
+  def sigil_L(source, mods), do: sigil_l(source, mods)
+
+  @doc """
   Lexes a string containing valid Signo source code into
   a list of `Signo.Token`s.
 
