@@ -17,6 +17,7 @@ defmodule Signo.StdLib do
   alias Signo.AST.{Number, Atom, String, List, Nil, Builtin}
 
   import Signo.Interpreter, only: [truthy?: 1]
+  import Signo.AST, only: [is_value: 1]
 
   @doc false
   @spec kernel() :: Env.t()
@@ -62,7 +63,7 @@ defmodule Signo.StdLib do
         "concat" => Builtin.new(:concat, 2),
         "first" => Builtin.new(:first, 1),
         "last" => Builtin.new(:last, 1),
-        "elem" => Builtin.new(:elem, 2),
+        "nth" => Builtin.new(:nth, 2),
         "push" => Builtin.new(:push, 2),
         "pop" => Builtin.new(:pop, 2),
         "sum" => Builtin.new(:sum, 1),
@@ -71,15 +72,6 @@ defmodule Signo.StdLib do
       }
     }
   end
-
-  defguardp is_value(a)
-    when is_struct(a, Nil)
-    or is_struct(a, Number)
-    or is_struct(a, Atom)
-    or is_struct(a, String)
-    or is_struct(a, List)
-    or is_struct(a, Lambda)
-    or is_struct(a, Builtin)
 
   defguardp both_numbers(a, b) when is_struct(a, Number) and is_struct(b, Number)
   defguardp both_strings(a, b) when is_struct(a, String) and is_struct(b, String)
@@ -96,7 +88,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :general
   @spec print(AST.value()) :: Atom.t()
-  def print(value) when is_value(value) do
+  def print([value]) when is_value(value) do
     value |> IO.puts() |> Atom.new()
   end
 
@@ -114,7 +106,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :numbers
   @spec neg(AST.value()) :: Atom.t()
-  def neg(literal) when is_value(literal) do
+  def neg([literal]) when is_value(literal) do
     Atom.new(not truthy?(literal))
   end
 
@@ -131,8 +123,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec both(AST.value(), AST.value()) :: Atom.t()
-  def both(a, b) when both_values(a, b) do
+  @spec both([AST.value()]) :: Atom.t()
+  def both([a, b]) when both_values(a, b) do
     Atom.new(truthy?(a) and truthy?(b))
   end
 
@@ -149,8 +141,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec either(AST.value(), AST.value()) :: Atom.t()
-  def either(a, b) when both_values(a, b) do
+  @spec either([AST.value()]) :: Atom.t()
+  def either([a, b]) when both_values(a, b) do
     Atom.new(truthy?(a) or truthy?(b))
   end
 
@@ -167,8 +159,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec neither(AST.value(), AST.value()) :: Atom.t()
-  def neither(a, b) when both_values(a, b) do
+  @spec neither([AST.value()]) :: Atom.t()
+  def neither([a, b]) when both_values(a, b) do
     Atom.new(not (truthy?(a) and truthy?(b)))
   end
 
@@ -187,8 +179,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec xor(AST.value(), AST.value()) :: Atom.t()
-  def xor(a, b) when both_values(a, b) do
+  @spec xor([AST.value()]) :: Atom.t()
+  def xor([a, b]) when both_values(a, b) do
     Atom.new((truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a)))
   end
 
@@ -206,8 +198,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec eq(AST.value(), AST.value()) :: Atom.t()
-  def eq(a, b) when both_values(a, b) do
+  @spec eq([AST.value()]) :: Atom.t()
+  def eq([a, b]) when both_values(a, b) do
     # TODO(robin): make this work with lambdas and lists
     Atom.new(a.value == b.value)
   end
@@ -226,8 +218,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec not_eq(AST.value(), AST.value()) :: Atom.t()
-  def not_eq(a, b) when both_values(a, b) do
+  @spec not_eq([AST.value()]) :: Atom.t()
+  def not_eq([a, b]) when both_values(a, b) do
     # TODO(robin): make this work with lambdas and lists
     Atom.new(a.value != b.value)
   end
@@ -242,8 +234,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec gt(Number.t(), Number.t()) :: Atom.t()
-  def gt(a, b) when both_numbers(a, b) do
+  @spec gt([Number.t()]) :: Atom.t()
+  def gt([a, b]) when both_numbers(a, b) do
     Atom.new(a.value > b.value)
   end
 
@@ -257,8 +249,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec gte(Number.t(), Number.t()) :: Atom.t()
-  def gte(a, b) when both_numbers(a, b) do
+  @spec gte([Number.t()]) :: Atom.t()
+  def gte([a, b]) when both_numbers(a, b) do
     Atom.new(a.value >= b.value)
   end
 
@@ -272,8 +264,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec lt(Number.t(), Number.t()) :: Atom.t()
-  def lt(a, b) when both_numbers(a, b) do
+  @spec lt([Number.t()]) :: Atom.t()
+  def lt([a, b]) when both_numbers(a, b) do
     Atom.new(a.value < b.value)
   end
 
@@ -287,8 +279,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec lte(Number.t(), Number.t()) :: Atom.t()
-  def lte(a, b) when both_numbers(a, b) do
+  @spec lte([Number.t()]) :: Atom.t()
+  def lte([a, b]) when both_numbers(a, b) do
     Atom.new(a.value <= b.value)
   end
 
@@ -300,8 +292,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec add(Number.t(), Number.t()) :: Number.t()
-  def add(a, b) when both_numbers(a, b) do
+  @spec add([Number.t()]) :: Number.t()
+  def add([a, b]) when both_numbers(a, b) do
     Number.new(a.value + b.value)
   end
 
@@ -313,8 +305,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec sub(Number.t(), Number.t()) :: Number.t()
-  def sub(a, b) when both_numbers(a, b) do
+  @spec sub([Number.t()]) :: Number.t()
+  def sub([a, b]) when both_numbers(a, b) do
     Number.new(a.value - b.value)
   end
 
@@ -326,8 +318,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec mult(Number.t(), Number.t()) :: Number.t()
-  def mult(a, b) when both_numbers(a, b) do
+  @spec mult([Number.t()]) :: Number.t()
+  def mult([a, b]) when both_numbers(a, b) do
     Number.new(a.value * b.value)
   end
 
@@ -339,8 +331,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec div(Number.t(), Number.t()) :: Number.t()
-  def div(a, b) when both_numbers(a, b) do
+  @spec div([Number.t()]) :: Number.t()
+  def div([a, b]) when both_numbers(a, b) do
     Number.new(a.value / b.value)
   end
 
@@ -352,8 +344,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :numbers
-  @spec pow(Number.t(), Number.t()) :: Number.t()
-  def pow(x, n) when both_numbers(x, n) do
+  @spec pow([Number.t()]) :: Number.t()
+  def pow([x, n]) when both_numbers(x, n) do
     Number.new(:math.pow(x.value, n.value))
   end
 
@@ -365,8 +357,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec sqrt(Number.t()) :: Number.t()
-  def sqrt(%Number{value: x}) do
+  @spec sqrt([Number.t()]) :: Number.t()
+  def sqrt([%Number{value: x}]) do
     x |> :math.sqrt() |> Number.new()
   end
 
@@ -380,8 +372,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec abs(Number.t()) :: Number.t()
-  def abs(%Number{value: x}) do
+  @spec abs([Number.t()]) :: Number.t()
+  def abs([%Number{value: x}]) do
     x |> Kernel.abs() |> Number.new()
   end
 
@@ -424,8 +416,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec sin(Number.t()) :: Number.t()
-  def sin(%Number{value: x}) do
+  @spec sin([Number.t()]) :: Number.t()
+  def sin([%Number{value: x}]) do
     x |> :math.sin() |> Number.new()
   end
 
@@ -437,8 +429,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec cos(Number.t()) :: Number.t()
-  def cos(%Number{value: x}) do
+  @spec cos([Number.t()]) :: Number.t()
+  def cos([%Number{value: x}]) do
     x |> :math.cos() |> Number.new()
   end
 
@@ -450,8 +442,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec tan(Number.t()) :: Number.t()
-  def tan(%Number{value: x}) do
+  @spec tan([Number.t()]) :: Number.t()
+  def tan([%Number{value: x}]) do
     x |> :math.tan() |> Number.new()
   end
 
@@ -463,8 +455,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec asin(Number.t()) :: Number.t()
-  def asin(%Number{value: x}) do
+  @spec asin([Number.t()]) :: Number.t()
+  def asin([%Number{value: x}]) do
     x |> :math.asin() |> Number.new()
   end
 
@@ -476,8 +468,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec acos(Number.t()) :: Number.t()
-  def acos(%Number{value: x}) do
+  @spec acos([Number.t()]) :: Number.t()
+  def acos([%Number{value: x}]) do
     x |> :math.acos() |> Number.new()
   end
 
@@ -489,8 +481,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec atan(Number.t()) :: Number.t()
-  def atan(%Number{value: x}) do
+  @spec atan([Number.t()]) :: Number.t()
+  def atan([%Number{value: x}]) do
     x |> :math.atan() |> Number.new()
   end
 
@@ -502,8 +494,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec ln(Number.t()) :: Number.t()
-  def ln(%Number{value: x}) do
+  @spec ln([Number.t()]) :: Number.t()
+  def ln([%Number{value: x}]) do
     x |> :math.log() |> Number.new()
   end
 
@@ -515,8 +507,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec log(Number.t()) :: Number.t()
-  def log(%Number{value: x}) do
+  @spec log([Number.t()]) :: Number.t()
+  def log([%Number{value: x}]) do
     x |> :math.log10() |> Number.new()
   end
 
@@ -528,8 +520,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec logn(Number.t(), Number.t()) :: Number.t()
-  def logn(n, x) when both_numbers(n, x) do
+  @spec logn([Number.t()]) :: Number.t()
+  def logn([n, x]) when both_numbers(n, x) do
     Number.new(:math.log10(x.value) / :math.log10(n.value))
   end
 
@@ -541,8 +533,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec length(String.t()) :: Number.t()
-  def length(%String{value: a}) do
+  @spec length([String.t()]) :: Number.t()
+  def length([%String{value: a}]) do
     a |> Elixir.String.length() |> Number.new()
   end
 
@@ -554,8 +546,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec downcase(String.t()) :: String.t()
-  def downcase(%String{value: str}) do
+  @spec downcase([String.t()]) :: String.t()
+  def downcase([%String{value: str}]) do
     str |> Elixir.String.downcase() |> String.new()
   end
 
@@ -567,8 +559,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec upcase(String.t()) :: String.t()
-  def upcase(%String{value: str}) do
+  @spec upcase([String.t()]) :: String.t()
+  def upcase([%String{value: str}]) do
     str |> Elixir.String.upcase() |> String.new()
   end
 
@@ -580,8 +572,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec capitalize(String.t()) :: String.t()
-  def capitalize(%String{value: str}) do
+  @spec capitalize([String.t()]) :: String.t()
+  def capitalize([%String{value: str}]) do
     str |> Elixir.String.capitalize() |> String.new()
   end
 
@@ -593,8 +585,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec trim(String.t()) :: String.t()
-  def trim(%String{value: str}) do
+  @spec trim([String.t()]) :: String.t()
+  def trim([%String{value: str}]) do
     str |> Elixir.String.trim() |> String.new()
   end
 
@@ -608,14 +600,14 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :strings
-  @spec concat(String.t(), String.t()) :: String.t()
-  def concat(a, b) when both_strings(a, b) do
+  @spec concat([String.t()]) :: String.t()
+  def concat([a, b]) when both_strings(a, b) do
     a.value <> b.value
   end
 
   @doc section: :lists
-  @spec concat(List.t(), List.t()) :: List.t()
-  def concat(a, b) when both_lists(a, b) do
+  @spec concat([List.t()]) :: List.t()
+  def concat([a, b]) when both_lists(a, b) do
     List.new(a.expressions ++ b.expressions)
   end
 
@@ -627,9 +619,9 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :lists
-  @spec first(List.t()) :: AST.value()
-  def first(%List{expressions: []}), do: Nil.new()
-  def first(%List{expressions: [head | _]}), do: head
+  @spec first([List.t()]) :: AST.value()
+  def first([%List{expressions: []}]), do: Nil.new()
+  def first([%List{expressions: [head | _]}]), do: head
 
   @doc """
   Returns the last item of a list.
@@ -641,36 +633,36 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :lists
-  @spec last(List.t()) :: AST.value()
-  def last(%List{expressions: expressions}) do
+  @spec last([List.t()]) :: AST.value()
+  def last([%List{expressions: expressions}]) do
     Elixir.List.last(expressions, Nil.new())
   end
 
   @doc """
   Returns the last item of a list.
 
-      sig> (elem (list 'hell' 'o') 1)
+      sig> (nth 1 '("hell" "o"))
       'o'
-      sig> (elem (list 'hell' 'o') 2)
+      sig> (nth 2 '("hell" "o"))
       ()
 
   """
   @doc section: :lists
-  @spec elem(List.t(), Number.t()) :: AST.value()
-  def elem(%List{expressions: expressions}, %Number{value: index}) do
+  @spec nth([Number.t() | List.t()]) :: AST.value()
+  def nth([%Number{value: index}, %List{expressions: expressions}]) do
     Enum.at(expressions, index, Nil.new())
   end
 
   @doc """
   Pushes the given item onto the list.
 
-      sig> (push (list 'hell' 'o') 'world')
-      <list>('hell' 'o' 'world')
+      sig> (push "world" '("hell" "o"))
+      <list>("hell" "o" "world")
 
   """
   @doc section: :lists
-  @spec push(List.t(), AST.value()) :: List.t()
-  def push(%List{expressions: expressions}, item) when is_value(item) do
+  @spec push([AST.value() | List.t()]) :: List.t()
+  def push([item, %List{expressions: expressions}]) when is_value(item) do
     List.new([item | expressions])
   end
 
@@ -678,15 +670,15 @@ defmodule Signo.StdLib do
   Returns a new list containing the first item of the old list
   and the remainder of the old list.
 
-      sig> (pop (list 'hell' 'o' 'world'))
-      <list>('hell' <list>('o' 'world'))
-      sig> (tail (list))
-      <list>((), <list>())
+      sig> (pop '("hell" "o" "world"))
+      <list>("hell" <list>("o" "world"))
+      sig> (pop '())
+      <list>((), ()))
 
   """
   @doc section: :lists
-  @spec pop(List.t()) :: List.t()
-  def pop(%List{expressions: []}) do
+  @spec pop([List.t()]) :: List.t()
+  def pop([%List{expressions: []}]) do
     List.new([Nil.new(), List.new([])])
   end
 

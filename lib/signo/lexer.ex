@@ -21,7 +21,6 @@ defmodule Signo.Lexer do
     end
   end
 
-  @keywords ["if", "let", "def", "lambda", "do", "list"]
   @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">"]
 
@@ -34,7 +33,7 @@ defmodule Signo.Lexer do
   defguardp is_alnum(ch) when is_letter(ch) or is_digit(ch) or is_special(ch)
   defguardp is_semicolon(ch) when ch == ";"
   defguardp is_newline(ch) when ch == "\n"
-  defguardp is_quote(ch) when ch == "'"
+  defguardp is_quote(ch) when ch == "\""
   defguardp is_hash(ch) when ch == "#"
   defguardp is_dot(ch) when ch == "."
 
@@ -63,49 +62,24 @@ defmodule Signo.Lexer do
   defp lex(chars = [ch | rest], tokens, pos) do
     cond do
       is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
-      is_semicolon(ch) -> read_comment(chars, tokens, pos)
-      is_hash(ch) -> read_atom(chars, tokens, pos)
+      is_semicolon(ch) -> ignore_comment(chars, tokens, pos)
       is_digit(ch) -> read_number(chars, tokens, pos)
-      is_alnum(ch) -> read_identifier(chars, tokens, pos)
       is_quote(ch) -> read_string(chars, tokens, pos)
+      is_hash(ch) -> read_identifier(chars, tokens, pos)
+      is_alnum(ch) -> read_identifier(chars, tokens, pos)
       true -> read_next_char(chars, tokens, pos)
     end
   end
 
-  defp read_comment(chars, tokens, pos) do
+  defp ignore_comment(chars, tokens, pos) do
     {collected, rest} = Enum.split_while(chars, &(not is_newline(&1)))
     lex(rest, tokens, inc(pos, collected))
-  end
-
-  defp read_atom(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &is_alnum/1)
-    lexeme = Enum.join(collected)
-    literal = lexeme |> String.slice(1..-1//1) |> String.to_atom()
-
-    token = Token.new({:literal, literal}, lexeme, pos)
-    lex(rest, [token | tokens], inc(pos, collected))
-  end
-
-  defp read_identifier(chars, tokens, pos) do
-    {collected, rest} = Enum.split_while(chars, &is_alnum/1)
-    lexeme = Enum.join(collected)
-
-    token = Token.new(ckeck_keyword(lexeme), lexeme, pos)
-    lex(rest, [token | tokens], inc(pos, collected))
-  end
-
-  defp ckeck_keyword(lexeme) do
-    if lexeme in @keywords,
-      do: {:keyword, String.to_atom(lexeme)},
-      else: :symbol
   end
 
   defp read_number(chars, tokens, pos) do
     {collected, rest} = collect_number(chars)
     lexeme = Enum.join(collected)
-    {literal, ""} = parse_number(lexeme)
-
-    token = Token.new({:literal, literal}, lexeme, pos)
+    token = Token.new({:literal, parse_number(lexeme)}, lexeme, pos)
     lex(rest, [token | tokens], inc(pos, collected))
   end
 
@@ -119,8 +93,8 @@ defmodule Signo.Lexer do
 
   defp parse_number(lexeme) do
     if String.contains?(lexeme, "."),
-      do: Float.parse(lexeme),
-      else: Integer.parse(lexeme)
+      do: String.to_float(lexeme),
+      else: String.to_integer(lexeme)
   end
 
   defp read_string([_quote | rest], tokens, pos) do
@@ -132,11 +106,22 @@ defmodule Signo.Lexer do
     lex(rest, [token | tokens], pos |> inc(collected) |> inc(2))
   end
 
+  defp read_identifier(chars, tokens, pos) do
+    {collected, rest} = Enum.split_while(chars, &is_alnum/1)
+    lexeme = Enum.join(collected)
+    token = Token.new(determine_type(lexeme), lexeme, pos)
+    lex(rest, [token | tokens], inc(pos, collected))
+  end
+
+  defp determine_type("#" <> a),  do: {:literal, String.to_atom(a)}
+  defp determine_type(_lexeme), do: :symbol
+
   defp read_next_char(_chars = [ch | rest], tokens, pos) do
     token =
       case ch do
         "(" -> Token.new(:opening, ch, pos)
         ")" -> Token.new(:closing, ch, pos)
+        "'" -> Token.new(:quote, ch, pos)
         _ -> raise LexError, lexeme: ch, pos: pos
       end
 

@@ -16,7 +16,7 @@
 (let result (double 8))
 
 ; if-expressions
-(if (== result 16) (print 'it works!') (print 'it doesnt!'))
+(if (== result 16) (print "it works!") (print "it doesnt!"))
 
 ; the environment is 'enclosed' in a function upon definition
 ; if it get's changed later, the function will retain values
@@ -24,14 +24,14 @@
 ; changing 'result' should not change behaviour.
 (def closure (n) (+ n result))
 (let result 2)
-(print (if (== 18 (closure 2)) 'omg closures!'))
+(print (if (== 18 (closure 2)) "omg closures!"))
 
 ; () is our nil type.
 ; this does nothing
-(if (not #false) () (print 'oops!'))
+(if (not #false) () (print "oops!"))
 
 ; this is a convoluted way to print; but it works!
-((lambda (n) (print n)) (join (list 'hello' 'world!') ', '))
+((lambda (n) (print n)) (join '("hello" "world!") ", "))
 
 ; lists :)
 (let x (list 1 2))
@@ -41,10 +41,10 @@
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
 (print (do
-  (print 'hello from scope!')
+  (print "hello from scope!")
   (let y (* 2 coolNumber))))
 
 ; y is undefined here because it's only defined in the block scope
-(print 'gonna crash now...')
+(print "gonna crash now...")
 (print y)
 ```

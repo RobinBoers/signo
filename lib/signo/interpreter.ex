@@ -5,21 +5,11 @@ defmodule Signo.Interpreter do
   alias Signo.AST
   alias Signo.Env
   alias Signo.StdLib
+  alias Signo.SpecialForms
 
-  alias Signo.AST.{
-    Procedure,
-    Block,
-    Nil,
-    Number,
-    Atom,
-    String,
-    List,
-    Symbol,
-    If,
-    Let,
-    Lambda,
-    Builtin
-  }
+  alias Signo.AST.{List, Quoted, Nil, Number, Atom, String, List, Symbol, If, Let, Lambda, Macro, Builtin}
+
+  import Signo.AST, only: [is_value: 1]
 
   defmodule RuntimeError do
     @moduledoc """
@@ -31,20 +21,6 @@ defmodule Signo.Interpreter do
     @impl true
     def exception(message: message, position: pos) do
       %__MODULE__{message: "#{message} at #{pos}"}
-    end
-  end
-
-  defmodule ArgumentError do
-    @moduledoc """
-    Raised when a function is called with the wrong amount of arguments.
-    """
-    defexception [:message]
-
-    @impl true
-    def exception(arity: arity, given: given, position: pos) do
-      %__MODULE__{
-        message: "function takes #{arity}, but #{length(given)} were given at #{pos}"
-      }
     end
   end
 
@@ -77,8 +53,6 @@ defmodule Signo.Interpreter do
     end
   end
 
-  @values [Nil, Number, Atom, String, Lambda, Builtin]
-
   @spec evaluate!(AST.t()) :: {AST.value(), Env.t()}
   def evaluate!(ast) do
     evaluate(ast.expressions, StdLib.kernel() |> Env.new())
@@ -91,78 +65,39 @@ defmodule Signo.Interpreter do
 
   @spec evaluate([AST.expression()], Env.t()) :: {AST.value(), Env.t()}
   defp evaluate([], env), do: {Nil.new(), env}
-  defp evaluate([node], env), do: eval(node, env)
-
   defp evaluate([node | rest], env) do
     {_, env} = eval(node, env)
     evaluate(rest, env)
   end
 
-  defp eval(%Let{reference: ref, value: value}, env) do
-    {value, env} = eval(value, env)
-    {value, Env.assign(env, ref, value)}
-  end
-
-  defp eval(%Symbol{reference: ref, pos: pos}, env) do
+  def eval(%Symbol{reference: ref, pos: pos}, env) do
     {Env.lookup!(env, ref, pos), env}
   end
 
-  defp eval(%Lambda{closure: nil} = lambda, env) do
-    {%Lambda{lambda | closure: Env.new(env)}, env}
+  def eval(%Quoted{expression: expression}, env) do
+    {expression, env}
   end
 
-  defp eval(%List{expressions: expressions}, env) do
-    {expressions, env} = eval_list(expressions, env)
-    {%List{expressions: Enum.reverse(expressions)}, env}
-  end
-
-  defp eval(%node{} = value, env) when node in @values do
+  def eval(value, env) when is_value(value) do
     {value, env}
   end
 
-  defp eval(%If{} = branch, env) do
-    scoped(&eval_if/2, branch, env)
-  end
+  def eval(%List{expressions: [head, params]} = proc, env) do
+    case head do
+      %Lambda{} = lambda ->
+        {params, env} = eval_list(params, env)
+        {eval_call(lambda, params), env}
 
-  defp eval(%Block{expressions: expressions}, env) do
-    {expressions, _} = eval_list(expressions, env)
-    {hd(expressions), env}
-  end
+      %Builtin{definition: definition} ->
+        {params, env} = eval_list(params, env)
+        {apply(StdLib, definition, [params]), env}
 
-  defp eval(%Procedure{expressions: expressions} = proc, env) do
-    {expressions, env} = eval_list(expressions, env)
-    scoped(&eval_prodecure/2, {proc, expressions}, env)
-  end
-
-  defp eval_if(%If{} = branch, env) do
-    {value, env} = eval(branch.condition, env)
-
-    if truthy?(value),
-      do: eval(branch.then, env),
-      else: eval(branch.else, env)
-  end
-
-  defp eval_prodecure({%Procedure{} = proc, expressions}, env) do
-    case Enum.reverse(expressions) do
-      [%Lambda{arguments: args} | params] when length(params) != length(args) ->
-        raise ArgumentError, arity: length(args), given: params, position: proc.pos
-
-      [%Lambda{arguments: args, body: body, closure: env} | params] ->
-        eval(body, Env.new(env, args |> Enum.map(& &1.reference) |> Enum.zip(params)))
-
-      [%Builtin{arity: arity} | params] when length(params) != arity ->
-        raise ArgumentError, defined: arity, given: params, position: proc.pos
-
-      [%Builtin{definition: definition} | params] ->
-        {apply(StdLib, definition, params), env}
+      %Macro{definition: definition} ->
+        {apply(SpecialForms, definition, [params]), env}        
 
       [node | _] ->
         raise RuntimeError, message: "#{node} is not a function", position: proc.pos
     end
-  rescue
-    FunctionClauseError ->
-      # credo:disable-for-next-line
-      raise TypeError, position: proc.pos
   end
 
   defp eval_list(expressions, env) do
@@ -172,9 +107,11 @@ defmodule Signo.Interpreter do
     end)
   end
 
-  defp scoped(parser, term, env) do
-    {value, _} = parser.(term, Env.new(env))
-    {value, env}
+  defp eval_call(callable, params) do
+    %{args: args, body: body, closure: closure} = callable
+    bindings = args |> Enum.map(& &1.reference) |> Enum.zip(params)
+    {value, _} = eval(body, Env.new(closure, bindings))
+    value
   end
 
   def truthy?(object) do

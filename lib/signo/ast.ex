@@ -13,18 +13,16 @@ defmodule Signo.AST do
   that evaluates down to an `t:value/0`.
   """
   @type expression ::
-          __MODULE__.Procedure.t()
-          | __MODULE__.Block.t()
-          | __MODULE__.Nil.t()
-          | __MODULE__.Number.t()
-          | __MODULE__.Atom.t()
-          | __MODULE__.String.t()
-          | __MODULE__.List.t()
-          | __MODULE__.Symbol.t()
-          | __MODULE__.If.t()
-          | __MODULE__.Let.t()
-          | __MODULE__.Lambda.t()
-          | __MODULE__.Builtin.t()
+          List.t()
+          | Quoted.t()
+          | Nil.t()
+          | Number.t()
+          | Atom.t()
+          | String.t()
+          | Symbol.t()
+          | Lambda.t()
+          | Builtin.t()
+          | Macro.t()
 
   @typedoc """
   A reference is a key by which a `t:value/0` can
@@ -37,21 +35,33 @@ defmodule Signo.AST do
   simplied by evaluating it.
   """
   @type value ::
-          __MODULE__.Nil.t()
-          | __MODULE__.Number.t()
-          | __MODULE__.Atom.t()
-          | __MODULE__.String.t()
-          | __MODULE__.List.t()
-          | __MODULE__.Lambda.t()
-          | __MODULE__.Builtin.t()
+          Nil.t()
+          | Number.t()
+          | Atom.t()
+          | String.t()
+          | Lambda.t()
+          | Builtin.t()
+          | Macro.t()
+
+  defguard is_value(node)
+    when is_struct(node, AST.Nil)
+    or is_struct(node, Number)
+    or is_struct(node, Atom)
+    or is_struct(node, String)
+    or is_struct(node, Lambda)
+    or is_struct(node, Builtin)
+    or is_struct(node, Macro)
 
   typedstruct enforce: true do
     field :expressions, [expression()]
   end
 
-  defmodule Procedure do
+  defmodule List do
     @moduledoc """
-    A list of expressions that evaluates to a procedure call.
+    A data structure holding a list of expressions.
+
+    Internally implemented as an Elixir list, which is in turn
+    implemented a linked list.
     """
 
     typedstruct enforce: true do
@@ -63,20 +73,32 @@ defmodule Signo.AST do
     def new(expressions, pos) do
       %__MODULE__{expressions: expressions, pos: pos}
     end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{expressions: expressions}) do
+        "<list>(#{Enum.join(expressions, " ")})"
+      end
+    end
   end
 
-  defmodule Block do
+  defmodule Quoted do
     @moduledoc """
-    A scoped list of expressions that evaluates to the last expression.
+    An expression that is passed as-is, without being evaluated first.
     """
 
     typedstruct enforce: true do
-      field :expressions, [AST.expression()]
+      field :expression, AST.expression()
     end
 
-    @spec new([AST.expression()]) :: t()
-    def new(expressions) do
-      %__MODULE__{expressions: expressions}
+    @spec new(AST.expression()) :: t()
+    def new(expression) do
+      %__MODULE__{expression: expression}
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{expression: expression}) do
+        Kernel.to_string(expression)
+      end
     end
   end
 
@@ -113,7 +135,9 @@ defmodule Signo.AST do
     end
 
     defimpl Elixir.String.Chars do
-      def to_string(%@for{value: number}), do: "#{number}"
+      def to_string(%@for{value: number}) do
+        Kernel.to_string(number)
+      end
     end
   end
 
@@ -155,30 +179,6 @@ defmodule Signo.AST do
     end
   end
 
-  defmodule List do
-    @moduledoc """
-    A data structure holding a list of `t:Signo.AST.value/0`.
-
-    Internally implemented as an Elixir list, which is in turn
-    implemented a linked list.
-    """
-
-    typedstruct enforuce: true do
-      field :expressions, [AST.expression()]
-    end
-
-    @spec new([AST.expression()]) :: t()
-    def new(expressions) do
-      %__MODULE__{expressions: expressions}
-    end
-
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{expressions: expressions}) do
-        "<list>(#{Enum.join(expressions, " ")})"
-      end
-    end
-  end
-
   defmodule Symbol do
     @moduledoc """
     A reference to variable or function in scope.
@@ -199,49 +199,9 @@ defmodule Signo.AST do
     end
   end
 
-  defmodule If do
-    @moduledoc """
-    An execution branch based a on condition.
-    """
-
-    typedstruct enforce: true do
-      field :condition, AST.expression()
-      field :then, AST.expression()
-      field :else, AST.expression()
-    end
-
-    @spec new(AST.expression(), AST.expression(), AST.expression()) :: t()
-    def new(condition, then, otherwise) do
-      %__MODULE__{
-        condition: condition,
-        then: then,
-        else: otherwise
-      }
-    end
-  end
-
-  defmodule Let do
-    @moduledoc """
-    A declaration of a variable in scope.
-    """
-
-    typedstruct enforce: true do
-      field :reference, AST.ref()
-      field :value, AST.expression()
-    end
-
-    @spec new(AST.ref(), AST.expression()) :: t()
-    def new(ref, value) do
-      %__MODULE__{
-        reference: ref,
-        value: value
-      }
-    end
-  end
-
   defmodule Lambda do
     @moduledoc """
-    A declaration of a function in scope.
+    A declaration of a function with enclosed environment.
     """
 
     typedstruct enforce: true do
@@ -287,6 +247,31 @@ defmodule Signo.AST do
 
     defimpl Elixir.String.Chars do
       def to_string(%@for{definition: definition}), do: "<builtin>(#{definition})"
+    end
+  end
+
+  defmodule Macro do
+    @moduledoc """
+    A reference to a macro in the `Signo.SpecialForms`.
+    """
+
+    @type definition :: atom()
+
+    typedstruct enforce: true do
+      field :definition, definition()
+      field :arity, arity() | :arbitrary
+    end
+
+    @spec new(definition(), arity()) :: t()
+    def new(definition, arity) do
+      %__MODULE__{
+        definition: definition,
+        arity: arity
+      }
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{definition: definition}), do: "<macro>(#{definition})"
     end
   end
 end
