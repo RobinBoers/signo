@@ -1,4 +1,3 @@
-# credo:disable-for-this-file Credo.Check.Consistency.ParameterPatternMatching
 defmodule Signo.Interpreter do
   @moduledoc false
 

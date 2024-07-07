@@ -70,7 +70,7 @@ defmodule Signo.AST do
     end
 
     @spec new([AST.expression()], Position.t()) :: t()
-    def new([_ | _] = expressions, pos \\ %Position{}) do
+    def new(expressions = [_ | _], pos \\ %Position{}) do
       %__MODULE__{expressions: expressions, pos: pos}
     end
 

@@ -93,7 +93,7 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :general
-  @spec print(AST.value()) :: Atom.t()
+  @spec print([AST.value()]) :: Atom.t()
   def print([value]) when is_value(value) do
     value |> IO.puts() |> Atom.new()
   end
@@ -111,9 +111,9 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec _not(AST.value()) :: Atom.t()
-  def _not([literal]) when is_value(literal) do
-    Atom.new(not truthy?(literal))
+  @spec _not([AST.value()]) :: Atom.t()
+  def _not([value]) when is_value(value) do
+    Atom.new(not truthy?(value))
   end
 
   @doc """
@@ -753,9 +753,9 @@ defmodule Signo.StdLib do
   @spec pop([List.t()]) :: List.t()
   def pop([%List{} = list]) do
     case list.expressions do
-      [] -> List.new([Nil.new(), Nil.new()], list)
-      [head] -> List.new([head, Nil.new()], list)
-      [head | tail] -> List.new([head, List.new(tail, list)], list)
+      [] -> List.new([Nil.new(), Nil.new()])
+      [head] -> List.new([head, Nil.new()])
+      [head | tail] -> List.new([head, List.new(tail)])
     end
   end
 
