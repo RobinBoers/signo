@@ -55,6 +55,9 @@ defmodule Signo.Parser do
       [%Token{type: :closing} | rest] ->
         {collected |> Enum.reverse() |> List.new(pos), rest}
 
+      [%Token{type: :eof} = token] ->
+        raise ParseError, message: "unclosed list", token: token, pos: pos
+
       tokens ->
         {expression, rest} = parse_expression(tokens)
         parse_list(rest, [expression | collected], pos)
