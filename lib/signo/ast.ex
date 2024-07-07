@@ -13,16 +13,16 @@ defmodule Signo.AST do
   that evaluates down to an `t:value/0`.
   """
   @type expression ::
-          List.t()
-          | Quoted.t()
-          | Nil.t()
-          | Number.t()
-          | Atom.t()
-          | String.t()
-          | Symbol.t()
-          | Lambda.t()
-          | Builtin.t()
-          | Macro.t()
+          AST.List.t()
+          | AST.Quoted.t()
+          | AST.Nil.t()
+          | AST.Number.t()
+          | AST.Atom.t()
+          | AST.String.t()
+          | AST.Symbol.t()
+          | AST.Lambda.t()
+          | AST.Builtin.t()
+          | AST.Macro.t()
 
   @typedoc """
   A reference is a key by which a `t:value/0` can
@@ -35,22 +35,22 @@ defmodule Signo.AST do
   simplied by evaluating it.
   """
   @type value ::
-          Nil.t()
-          | Number.t()
-          | Atom.t()
-          | String.t()
-          | Lambda.t()
-          | Builtin.t()
-          | Macro.t()
+          AST.Nil.t()
+          | AST.Number.t()
+          | AST.Atom.t()
+          | AST.String.t()
+          | AST.Lambda.t()
+          | AST.Builtin.t()
+          | AST.Macro.t()
 
   defguard is_value(node)
     when is_struct(node, AST.Nil)
-    or is_struct(node, Number)
-    or is_struct(node, Atom)
-    or is_struct(node, String)
-    or is_struct(node, Lambda)
-    or is_struct(node, Builtin)
-    or is_struct(node, Macro)
+    or is_struct(node, AST.Number)
+    or is_struct(node, AST.Atom)
+    or is_struct(node, AST.String)
+    or is_struct(node, AST.Lambda)
+    or is_struct(node, AST.Builtin)
+    or is_struct(node, AST.Macro)
 
   typedstruct enforce: true do
     field :expressions, [expression()]
@@ -70,7 +70,7 @@ defmodule Signo.AST do
     end
 
     @spec new([AST.expression()], Position.t()) :: t()
-    def new([_ | _] = expressions, pos) do
+    def new([_ | _] = expressions, pos \\ %Position{}) do
       %__MODULE__{expressions: expressions, pos: pos}
     end
 
@@ -210,11 +210,12 @@ defmodule Signo.AST do
       field :closure, Env.t() | nil, default: nil
     end
 
-    @spec new([Symbol.t()], AST.expression()) :: t()
-    def new(args, body) do
+    @spec new([Symbol.t()], AST.expression(), Env.t()) :: t()
+    def new(args, body, env) do
       %__MODULE__{
         arguments: args,
-        body: body
+        body: body,
+        closure: env
       }
     end
 
@@ -234,15 +235,11 @@ defmodule Signo.AST do
 
     typedstruct enforce: true do
       field :definition, definition()
-      field :arity, arity() | :arbitrary
     end
 
-    @spec new(definition(), arity()) :: t()
-    def new(definition, arity) do
-      %__MODULE__{
-        definition: definition,
-        arity: arity
-      }
+    @spec new(definition()) :: t()
+    def new(definition) do
+      %__MODULE__{definition: definition}
     end
 
     defimpl Elixir.String.Chars do
@@ -259,15 +256,11 @@ defmodule Signo.AST do
 
     typedstruct enforce: true do
       field :definition, definition()
-      field :arity, arity() | :arbitrary
     end
 
-    @spec new(definition(), arity()) :: t()
-    def new(definition, arity) do
-      %__MODULE__{
-        definition: definition,
-        arity: arity
-      }
+    @spec new(definition()) :: t()
+    def new(definition) do
+      %__MODULE__{definition: definition}
     end
 
     defimpl Elixir.String.Chars do

@@ -31,8 +31,8 @@
 ((lambda (n) (print n)) (join '("hello" "world!") ", "))
 
 ; lists :)
-(let x (list 1 2))
-(let x (push x 3))
+(let x '(1 2))
+(let x (push 3 x))
 (print (sum x))
 
 ; this is a block: the last expression will be returned, and 

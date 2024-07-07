@@ -10,7 +10,7 @@ defmodule Signo.Env do
 
   alias Signo.AST
   alias Signo.Position
-  alias Signo.Interpreter.ReferenceError
+  alias Signo.ReferenceError
 
   @type scope :: %{AST.ref() => AST.value()}
 

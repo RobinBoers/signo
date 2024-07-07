@@ -43,7 +43,7 @@ sig> "hellö"
 "hellö"
 ```
 
-Strings can be concatenated using the `Signo.StdLib.concat/2` function from the standard library:
+Strings can be concatenated using the `Signo.StdLib.concat/1` function from the standard library:
 
 ```
 sig> (concat "hell" "o")

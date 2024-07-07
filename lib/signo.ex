@@ -112,7 +112,7 @@ defmodule Signo do
   Lexes a string containing valid Signo source code into
   a list of `Signo.Token`s.
 
-  Raises `Signo.Lexer.LexError` when encountering unknown characters.
+  Raises `Signo.LexError` when encountering unknown characters.
   Multiple lines are supported.
   """
   @spec lex!(String.t()) :: [Token.t()]
@@ -126,7 +126,7 @@ defmodule Signo do
   @doc """
   Parses a list of `Signo.Token`s into a executable AST.
 
-  Raises `Signo.Parser.ParseError` when encountering unexpected tokens.
+  Raises `Signo.ParseError` when encountering unexpected tokens.
   """
   @spec parse!([Token.t()]) :: AST.t()
   defdelegate parse!(tokens), to: Parser

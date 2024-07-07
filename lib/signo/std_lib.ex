@@ -14,7 +14,7 @@ defmodule Signo.StdLib do
 
   alias Signo.Env
   alias Signo.AST
-  alias Signo.AST.{Number, Atom, String, List, Nil, Builtin}
+  alias Signo.AST.{Number, Atom, String, List, Nil, Builtin, Macro}
 
   import Signo.Interpreter, only: [truthy?: 1]
   import Signo.AST, only: [is_value: 1]
@@ -24,51 +24,57 @@ defmodule Signo.StdLib do
   def kernel do
     %Env{
       scope: %{
-        "print" => Builtin.new(:print, 1),
-        "inspect" => Builtin.new(:inspect, 1),
-        "not" => Builtin.new(:neg, 1),
-        "and" => Builtin.new(:both, 2),
-        "or" => Builtin.new(:either, 2),
-        "nor" => Builtin.new(:neither, 2),
-        "xor" => Builtin.new(:xor, 2),
-        "==" => Builtin.new(:eq, 2),
-        "!=" => Builtin.new(:not_eq, 2),
-        ">" => Builtin.new(:gt, 2),
-        ">=" => Builtin.new(:gte, 2),
-        "<" => Builtin.new(:lt, 2),
-        "<=" => Builtin.new(:lte, 2),
-        "+" => Builtin.new(:add, 2),
-        "-" => Builtin.new(:sub, 2),
-        "*" => Builtin.new(:mult, 2),
-        "/" => Builtin.new(:div, 2),
-        "^" => Builtin.new(:pow, 2),
-        "sqrt" => Builtin.new(:sqrt, 1),
-        "abs" => Builtin.new(:abs, 1),
-        "pi" => Builtin.new(:pi, 0),
-        "tau" => Builtin.new(:tau, 0),
-        "sin" => Builtin.new(:sin, 1),
-        "cos" => Builtin.new(:cos, 1),
-        "tan" => Builtin.new(:tan, 1),
-        "asin" => Builtin.new(:asin, 1),
-        "acos" => Builtin.new(:acos, 1),
-        "atan" => Builtin.new(:atan, 1),
-        "ln" => Builtin.new(:ln, 1),
-        "log" => Builtin.new(:log, 2),
-        "logn" => Builtin.new(:logn, 2),
-        "length" => Builtin.new(:length, 1),
-        "upcase" => Builtin.new(:upcase, 1),
-        "downcase" => Builtin.new(:downcase, 1),
-        "capitalize" => Builtin.new(:capitalize, 1),
-        "trim" => Builtin.new(:trim, 1),
-        "concat" => Builtin.new(:concat, 2),
-        "first" => Builtin.new(:first, 1),
-        "last" => Builtin.new(:last, 1),
-        "nth" => Builtin.new(:nth, 2),
-        "push" => Builtin.new(:push, 2),
-        "pop" => Builtin.new(:pop, 2),
-        "sum" => Builtin.new(:sum, 1),
-        "product" => Builtin.new(:product, 1),
-        "join" => Builtin.new(:join, 2),
+        "let" => Macro.new(:let),
+        "eval" => Macro.new(:_eval),
+        "if" => Macro.new(:_if),
+        "do" => Macro.new(:_do),
+        "lambda" => Macro.new(:lambda),
+        "def" => Macro.new(:def),
+        "print" => Builtin.new(:print),
+        "not" => Builtin.new(:_not),
+        "and" => Builtin.new(:_and),
+        "or" => Builtin.new(:_or),
+        "nor" => Builtin.new(:_nor),
+        "xor" => Builtin.new(:_xor),
+        "==" => Builtin.new(:eq),
+        "!=" => Builtin.new(:not_eq),
+        ">" => Builtin.new(:gt),
+        ">=" => Builtin.new(:gte),
+        "<" => Builtin.new(:lt),
+        "<=" => Builtin.new(:lte),
+        "+" => Builtin.new(:add),
+        "-" => Builtin.new(:sub),
+        "*" => Builtin.new(:mult),
+        "/" => Builtin.new(:div),
+        "^" => Builtin.new(:pow),
+        "sqrt" => Builtin.new(:sqrt),
+        "abs" => Builtin.new(:abs),
+        "pi" => Builtin.new(:pi),
+        "tau" => Builtin.new(:tau),
+        "sin" => Builtin.new(:sin),
+        "cos" => Builtin.new(:cos),
+        "tan" => Builtin.new(:tan),
+        "asin" => Builtin.new(:asin),
+        "acos" => Builtin.new(:acos),
+        "atan" => Builtin.new(:atan),
+        "ln" => Builtin.new(:ln),
+        "log" => Builtin.new(:log),
+        "logn" => Builtin.new(:logn),
+        "upcase" => Builtin.new(:upcase),
+        "downcase" => Builtin.new(:downcase),
+        "capitalize" => Builtin.new(:capitalize),
+        "trim" => Builtin.new(:trim),
+        "length" => Builtin.new(:length),
+        "concat" => Builtin.new(:concat),
+        "tie" => Builtin.new(:length),
+        "first" => Builtin.new(:first),
+        "last" => Builtin.new(:last),
+        "nth" => Builtin.new(:nth),
+        "push" => Builtin.new(:push),
+        "pop" => Builtin.new(:pop),
+        "sum" => Builtin.new(:sum),
+        "product" => Builtin.new(:product),
+        "join" => Builtin.new(:join),
       }
     }
   end
@@ -104,9 +110,9 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @doc section: :numbers
-  @spec neg(AST.value()) :: Atom.t()
-  def neg([literal]) when is_value(literal) do
+  @doc section: :operators
+  @spec _not(AST.value()) :: Atom.t()
+  def _not([literal]) when is_value(literal) do
     Atom.new(not truthy?(literal))
   end
 
@@ -123,8 +129,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec both([AST.value()]) :: Atom.t()
-  def both([a, b]) when both_values(a, b) do
+  @spec _and([AST.value()]) :: Atom.t()
+  def _and([a, b]) when both_values(a, b) do
     Atom.new(truthy?(a) and truthy?(b))
   end
 
@@ -141,8 +147,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec either([AST.value()]) :: Atom.t()
-  def either([a, b]) when both_values(a, b) do
+  @spec _or([AST.value()]) :: Atom.t()
+  def _or([a, b]) when both_values(a, b) do
     Atom.new(truthy?(a) or truthy?(b))
   end
 
@@ -159,8 +165,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec neither([AST.value()]) :: Atom.t()
-  def neither([a, b]) when both_values(a, b) do
+  @spec _nor([AST.value()]) :: Atom.t()
+  def _nor([a, b]) when both_values(a, b) do
     Atom.new(not (truthy?(a) and truthy?(b)))
   end
 
@@ -179,8 +185,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :operators
-  @spec xor([AST.value()]) :: Atom.t()
-  def xor([a, b]) when both_values(a, b) do
+  @spec _xor([AST.value()]) :: Atom.t()
+  def _xor([a, b]) when both_values(a, b) do
     Atom.new((truthy?(a) and not truthy?(b)) or (truthy?(b) and not truthy?(a)))
   end
 
@@ -233,7 +239,7 @@ defmodule Signo.StdLib do
       #false
 
   """
-  @doc section: :numbers
+  @doc section: :operators
   @spec gt([Number.t()]) :: Atom.t()
   def gt([a, b]) when both_numbers(a, b) do
     Atom.new(a.value > b.value)
@@ -248,7 +254,7 @@ defmodule Signo.StdLib do
       #true
 
   """
-  @doc section: :numbers
+  @doc section: :operators
   @spec gte([Number.t()]) :: Atom.t()
   def gte([a, b]) when both_numbers(a, b) do
     Atom.new(a.value >= b.value)
@@ -387,8 +393,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec pi() :: Number.t()
-  def pi do
+  @spec pi([]) :: Number.t()
+  def pi([]) do
     Number.new(:math.pi())
   end
 
@@ -403,8 +409,8 @@ defmodule Signo.StdLib do
 
   """
   @doc section: :math
-  @spec tau() :: Number.t()
-  def tau do
+  @spec tau([]) :: Number.t()
+  def tau([]) do
     Number.new(:math.tau())
   end
 
@@ -619,6 +625,25 @@ defmodule Signo.StdLib do
   end
 
   @doc """
+  Combines all passed arguments into a list.
+
+  This function differs from creating a list by quoting
+  in that here all arguments get evaluated before forming
+  a list, where by quoting, the entire list remaings unevaluated:
+
+      sig> '(1 2 (+ 1 2))
+      (1 2 (+ 1 2))
+      sig> (tie 1 2 (+ 1 2))
+      (1 2 3)
+
+  """
+  @doc section: :lists
+  @spec tie([AST.value()]) :: List.t()
+  def tie(arguments) do
+    List.new(arguments)
+  end
+
+  @doc """
   Returns the first item of a list or
   the first Unicode grapheme in a string.
 
@@ -688,7 +713,7 @@ defmodule Signo.StdLib do
 
   @spec nth([String.t()]) :: String.t()
   def nth([%Number{value: index}, %String{value: a}]) do
-    if grapheme = Elixir.String.last(a),
+    if grapheme = Elixir.String.at(a, index),
       do: String.new(grapheme),
       else: Nil.new()
   end
@@ -727,24 +752,24 @@ defmodule Signo.StdLib do
   @spec pop([List.t()]) :: List.t()
   def pop([%List{} = list]) do
     case list.expressions do
-      [] -> List.new([Nil.new(), Nil.new()])
-      [head] -> List.new([head, Nil.new()])
-      [head | tail] -> List.new([head, List.new(tail)])
+      [] -> List.new([Nil.new(), Nil.new()], list)
+      [head] -> List.new([head, Nil.new()], list)
+      [head | tail] -> List.new([head, List.new(tail, list)], list)
     end
   end
 
-  @spec pop([String.t()]) :: List.new()
+  @spec pop([String.t()]) :: List.t()
   def pop([%String{value: a}]) do
-    case String.next_grapheme(a) do
+    case Elixir.String.next_grapheme(a) do
       {char, rest} -> List.new([String.new(char), String.new(rest)])
       nil -> List.new([Nil.new(), String.new("")])
     end
   end
 
   @doc """
-  Returns the sum of all `Signo.AST.Number`s in a `Signo.AST.List`.
+  Returns the sum of all numbers in a list.
 
-  Raises `Signo.Interpreter.TypeError` if one of the elements of
+  Raises `Signo.TypeError` if one of the elements of
   the list is not a number.
 
       sig> (sum '(1 2 3))
@@ -760,9 +785,9 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Returns the product of all `Signo.AST.Number`s in a `Signo.AST.List`.
+  Returns the product of all numbers in a list.
 
-  Raises `Signo.Interpreter.TypeError` if one of the elements of
+  Raises `Signo.TypeError` if one of the elements of
   the list is not a number.
 
       sig> (product '(2 3 4))

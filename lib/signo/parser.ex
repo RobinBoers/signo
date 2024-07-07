@@ -4,24 +4,9 @@ defmodule Signo.Parser do
   alias Signo.Token
   alias Signo.AST
   alias Signo.AST.{List, Quoted, Nil, Number, Atom, String, Symbol}
+  alias Signo.ParseError
 
   import Signo.AST, only: [is_value: 1]
-
-  defmodule ParseError do
-    @moduledoc """
-    Raised when the compiler encounters an unexpected token,
-    or when a token is missing.
-    """
-    defexception [:message, :token]
-
-    @impl true
-    def exception(token = %Token{}) do
-      %__MODULE__{
-        message: "unexpected '#{token.lexeme}' at #{token.pos}",
-        token: token
-      }
-    end
-  end
 
   @spec parse!([Token.t()]) :: AST.t()
   def parse!(tokens) do
