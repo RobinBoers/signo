@@ -58,8 +58,8 @@ defmodule Signo.Interpreter do
       %Macro{definition: definition} ->
         apply(SpecialForms, definition, [params, env])
 
-      [node | _] ->
-        raise RuntimeError, message: "#{node} is not a function", position: pos
+      node ->
+        raise RuntimeError, message: "#{node} is not callable", position: pos
     end
   rescue
     FunctionClauseError -> raise TypeError, position: pos
