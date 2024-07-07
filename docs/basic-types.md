@@ -7,8 +7,7 @@ sig> 1            ; number
 sig> 2.0          ; number
 sig> #true        ; boolean
 sig> #ok          ; atom
-sig> 'signo'      ; string
-sig> (list 1 2 3) ; list
+sig> "signo"      ; string
 ```
 
 ## Numbers
@@ -37,34 +36,34 @@ sig> (== #banana #banana)
 
 ## Strings
 
-Strings in Signo are delimited by **single** quotes, and they are encoded in UTF-8:
+Strings in Signo are delimited by **double** quotes, and they are encoded in UTF-8:
 
 ```
-sig> 'hellö'
-'hellö'
+sig> "hellö"
+"hellö"
 ```
 
 Strings can be concatenated using the `Signo.StdLib.concat/2` function from the standard library:
 
 ```
-sig> (concat 'hell' 'o')
-'hello'
+sig> (concat "hell" "o")
+"hello"
 ```
 
 You can print a string using the `Signo.StdLib.print/1` function:
 
 ```
-sig> (print 'hello')
-'hello'
+sig> (print "hello")
+"hello"
 ```
 
 ## Nil
 
-In Signo, nil is represented as an empty procedure:
+In Signo, nil is represented as an empty list:
 
 ```
 sig> ()
 ()
 ```
 
-Nil is the only non-boolean value that is falsy. So unlike other languages, where `''` and `0` are often falsy too, the only two falsy values in Signo are `#false` and `()`.
+Nil is the only non-boolean value that is falsy. So unlike other languages, where `""` and `0` are often falsy too, the only two falsy values in Signo are `#false` and `()`.
