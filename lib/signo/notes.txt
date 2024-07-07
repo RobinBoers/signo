@@ -1,8 +1,0 @@
-macros receive arguments as AST and then
-eval them conditionally
-
-normal procedures receive their args already
-evaluated
-
-builtins are builtin procedures
-specialforms are builtin macros (let, def, if, lambda)
