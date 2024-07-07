@@ -29,7 +29,7 @@ defmodule Signo.StdLib do
         "if" => Macro.new(:_if),
         "do" => Macro.new(:_do),
         "lambda" => Macro.new(:lambda),
-        "def" => Macro.new(:def),
+        "def" => Macro.new(:_def),
         "print" => Builtin.new(:print),
         "not" => Builtin.new(:_not),
         "and" => Builtin.new(:_and),

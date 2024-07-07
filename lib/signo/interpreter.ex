@@ -73,9 +73,10 @@ defmodule Signo.Interpreter do
   end
 
   def eval_call(callable, params) do
-    %{arguments: args, body: body, closure: closure} = callable
+    %{self: ref, arguments: args, body: body, closure: env} = callable
+    env = if ref, do: Env.assign(env, ref, callable), else: env
     bindings = args |> Enum.map(& &1.reference) |> Enum.zip(params)
-    {value, _} = eval(body, Env.new(closure, bindings))
+    {value, _} = eval(body, Env.new(env, bindings))
     value
   end
 

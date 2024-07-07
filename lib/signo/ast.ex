@@ -205,9 +205,10 @@ defmodule Signo.AST do
     """
 
     typedstruct enforce: true do
+      field :self, AST.ref() | nil, default: nil
       field :arguments, [Symbol.t()]
       field :body, AST.expression()
-      field :closure, Env.t() | nil, default: nil
+      field :closure, Env.t() | nil
     end
 
     @spec new([Symbol.t()], AST.expression(), Env.t()) :: t()

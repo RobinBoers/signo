@@ -129,8 +129,8 @@ defmodule Signo.SpecialForms do
       <lambda>(a b -> ...)
 
   """
-  def def([ref, args, body], env) do
+  def _def([%Symbol{reference: name} = ref, args, body], env) do
     {lambda, env} = lambda([args, body], env)
-    let([ref, lambda], env)
+    let([ref, %Lambda{lambda | self: name}], env)
   end
 end

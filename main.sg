@@ -35,6 +35,11 @@
 (let x (push 3 x))
 (print (sum x))
 
+; recursion
+; tail recursion not implemented...
+(def fact (n) (if (!= n 1) (* n (fact (- n 1))) 1))
+(print (fact 4))
+
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
 (print (do
@@ -44,4 +49,3 @@
 ; y is undefined here because it's only defined in the block scope
 (print "gonna crash now...")
 (print y)
-
