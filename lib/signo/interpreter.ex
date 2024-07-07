@@ -8,6 +8,7 @@ defmodule Signo.Interpreter do
   alias Signo.StdLib
   alias Signo.SpecialForms
   alias Signo.RuntimeError
+  alias Signo.TypeError
 
   import Signo.AST, only: [is_value: 1]
 
@@ -23,6 +24,8 @@ defmodule Signo.Interpreter do
 
   @spec evaluate([AST.expression()], Env.t()) :: {AST.value(), Env.t()}
   defp evaluate([], env), do: {Nil.new(), env}
+  defp evaluate([node], env), do: eval(node, env)
+
   defp evaluate([node | rest], env) do
     {_, env} = eval(node, env)
     evaluate(rest, env)
@@ -58,6 +61,8 @@ defmodule Signo.Interpreter do
       [node | _] ->
         raise RuntimeError, message: "#{node} is not a function", position: pos
     end
+  rescue
+    FunctionClauseError -> raise TypeError, position: pos
   end
 
   def eval_list(expressions, env) do
