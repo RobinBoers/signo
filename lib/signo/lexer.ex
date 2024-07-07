@@ -18,7 +18,6 @@ defmodule Signo.Lexer do
   defguardp is_semicolon(ch) when ch == ";"
   defguardp is_newline(ch) when ch == "\n"
   defguardp is_quote(ch) when ch == "\""
-  defguardp is_minus(ch) when ch == "-"
   defguardp is_hash(ch) when ch == "#"
   defguardp is_dot(ch) when ch == "."
 
@@ -48,7 +47,7 @@ defmodule Signo.Lexer do
     cond do
       is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
       is_semicolon(ch) -> ignore_comment(chars, tokens, pos)
-      is_digit(ch) or is_minus(ch) -> read_number(chars, tokens, pos)
+      is_digit(ch) -> read_number(chars, tokens, pos)
       is_quote(ch) -> read_string(chars, tokens, pos)
       is_hash(ch) -> read_identifier(chars, tokens, pos)
       is_alnum(ch) -> read_identifier(chars, tokens, pos)
