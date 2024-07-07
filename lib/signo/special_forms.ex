@@ -3,11 +3,14 @@ defmodule Signo.SpecialForms do
   Macro definitions for core language features.
   """
 
-  alias Signo.Env
-  alias Signo.AST.{List, Nil, Symbol, Lambda}
-  alias Signo.TypeError
-
   import Signo.Interpreter, only: [eval: 2, eval_list: 2, truthy?: 1]
+
+  alias Signo.AST.Lambda
+  alias Signo.AST.List
+  alias Signo.AST.Nil
+  alias Signo.AST.Symbol
+  alias Signo.Env
+  alias Signo.TypeError
 
   @doc """
   Assigns a symbol to a value for current scope.

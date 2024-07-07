@@ -2,9 +2,9 @@ defmodule Signo.REPL do
   @moduledoc false
 
   alias Signo.Env
+  alias Signo.Logger
   alias Signo.Position
   alias Signo.StdLib
-  alias Signo.Logger
 
   @spec repl() :: no_return()
   def repl do

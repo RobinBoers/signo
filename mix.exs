@@ -25,7 +25,8 @@ defmodule Signo.MixProject do
     {:ex_doc, "~> 0.31", only: :dev, runtime: false},
     {:credo, ">= 0.0.0", only: :dev, runtime: false},
     {:dialyxir, ">= 0.0.0", only: :dev, runtime: false},
-    {:ex_check, "~> 0.14.0", only: :dev, runtime: false}
+    {:ex_check, "~> 0.14.0", only: :dev, runtime: false},
+    {:styler, "~> 0.11", only: :dev, runtime: false}
   ]
 
   defp docs, do: [

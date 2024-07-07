@@ -1,12 +1,18 @@
 defmodule Signo.Parser do
   @moduledoc false
 
-  alias Signo.Token
-  alias Signo.AST
-  alias Signo.AST.{List, Quoted, Nil, Number, Atom, String, Symbol}
-  alias Signo.ParseError
-
   import Signo.AST, only: [is_value: 1]
+
+  alias Signo.AST
+  alias Signo.AST.Atom
+  alias Signo.AST.List
+  alias Signo.AST.Nil
+  alias Signo.AST.Number
+  alias Signo.AST.Quoted
+  alias Signo.AST.String
+  alias Signo.AST.Symbol
+  alias Signo.ParseError
+  alias Signo.Token
 
   @spec parse!([Token.t()]) :: AST.t()
   def parse!(tokens) do

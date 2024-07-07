@@ -1,9 +1,9 @@
 defmodule Signo.Lexer do
   @moduledoc false
 
+  alias Signo.LexError
   alias Signo.Position
   alias Signo.Token
-  alias Signo.LexError
 
   @whitespace ["\n", "\t", "\v", "\r", " "]
   @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">"]

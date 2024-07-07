@@ -12,12 +12,18 @@ defmodule Signo.StdLib do
   > the Signo names.
   """
 
-  alias Signo.Env
-  alias Signo.AST
-  alias Signo.AST.{Number, Atom, String, List, Nil, Builtin, Macro}
-
-  import Signo.Interpreter, only: [truthy?: 1]
   import Signo.AST, only: [is_value: 1]
+  import Signo.Interpreter, only: [truthy?: 1]
+
+  alias Signo.AST
+  alias Signo.AST.Atom
+  alias Signo.AST.Builtin
+  alias Signo.AST.List
+  alias Signo.AST.Macro
+  alias Signo.AST.Nil
+  alias Signo.AST.Number
+  alias Signo.AST.String
+  alias Signo.Env
 
   @doc false
   @spec kernel() :: Env.t()

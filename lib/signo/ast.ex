@@ -5,8 +5,8 @@ defmodule Signo.AST do
   use TypedStruct
 
   alias __MODULE__
-  alias Signo.Position
   alias Signo.Env
+  alias Signo.Position
 
   @typedoc """
   An expression is a building block for the AST

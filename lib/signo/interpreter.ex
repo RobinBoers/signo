@@ -1,19 +1,26 @@
 defmodule Signo.Interpreter do
   @moduledoc false
 
-  alias Signo.Env
-  alias Signo.AST
-  alias Signo.AST.{List, Quoted, Nil, Atom, List, Symbol, Lambda, Macro, Builtin}
-  alias Signo.StdLib
-  alias Signo.SpecialForms
-  alias Signo.RuntimeError
-  alias Signo.TypeError
-
   import Signo.AST, only: [is_value: 1]
+
+  alias Signo.AST
+  alias Signo.AST.Atom
+  alias Signo.AST.Builtin
+  alias Signo.AST.Lambda
+  alias Signo.AST.List
+  alias Signo.AST.Macro
+  alias Signo.AST.Nil
+  alias Signo.AST.Quoted
+  alias Signo.AST.Symbol
+  alias Signo.Env
+  alias Signo.RuntimeError
+  alias Signo.SpecialForms
+  alias Signo.StdLib
+  alias Signo.TypeError
 
   @spec evaluate!(AST.t()) :: {AST.value(), Env.t()}
   def evaluate!(ast) do
-    evaluate(ast.expressions, StdLib.kernel() |> Env.new())
+    evaluate(ast.expressions, Env.new(StdLib.kernel()))
   end
 
   @spec evaluate!(AST.t(), Env.t()) :: {AST.value(), Env.t()}

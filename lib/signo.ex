@@ -14,14 +14,14 @@ defmodule Signo do
   See "mix tasks" in the left-hand corner for details on command-line usage.
   """
 
-  alias Signo.Token
-  alias Signo.Position
+  alias Signo.AST
+  alias Signo.Env
+  alias Signo.Interpreter
   alias Signo.Lexer
   alias Signo.Parser
-  alias Signo.Interpreter
-  alias Signo.Env
-  alias Signo.AST
+  alias Signo.Position
   alias Signo.REPL
+  alias Signo.Token
 
   @doc """
   Returns the Signo version string.
