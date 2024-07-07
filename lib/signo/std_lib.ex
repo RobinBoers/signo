@@ -66,7 +66,7 @@ defmodule Signo.StdLib do
         "trim" => Builtin.new(:trim),
         "length" => Builtin.new(:length),
         "concat" => Builtin.new(:concat),
-        "tie" => Builtin.new(:length),
+        "tie" => Builtin.new(:tie),
         "first" => Builtin.new(:first),
         "last" => Builtin.new(:last),
         "nth" => Builtin.new(:nth),
