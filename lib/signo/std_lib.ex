@@ -724,8 +724,8 @@ defmodule Signo.StdLib do
   Look out: this function *only accepts lists*. To
   concatinate strings, use `concat/2`.
 
-      sig> (push 3 '(3 1 2))
-      (3 1 2)
+      sig> (push 3 '(1 2))
+      (1 2 3)
 
   """
   @doc section: :lists

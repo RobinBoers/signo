@@ -42,7 +42,7 @@ Typing stuff into that REPL is all good fun, but what if you're wanting to write
 Open up your favorite text editor and write something along these lines to a file creatively named `hello.sg`:
 
 ```lisp
-(print 'hello, world!')
+(print "hello, world!")
 ```
 
 And then run it like this:
