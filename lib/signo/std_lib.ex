@@ -55,6 +55,7 @@ defmodule Signo.StdLib do
       "sqrt" => Builtin.new(:sqrt),
       "abs" => Builtin.new(:abs),
       "pi" => Builtin.new(:pi),
+      "e" => Builtin.new(:e),
       "tau" => Builtin.new(:tau),
       "sin" => Builtin.new(:sin),
       "cos" => Builtin.new(:cos),
@@ -401,6 +402,21 @@ defmodule Signo.StdLib do
   @spec pi([]) :: Number.t()
   def pi([]) do
     Number.new(:math.pi())
+  end
+
+  @doc """
+  Euler's number.
+
+  Floating point approximation of mathematical constant e.
+
+      sig> (e)
+      2.71828...
+
+  """
+  @doc section: :math
+  @spec e([]) :: Number.t()
+  def e([]) do
+    Number.new(2.718281828459045235360287471352)
   end
 
   @doc """
