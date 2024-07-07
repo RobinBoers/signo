@@ -31,7 +31,17 @@ defmodule Signo.SpecialForms do
       #ok
 
   """
-  def _eval([node], env), do: eval(node, env)
+  def _eval([node], env) do
+    # Unintuatively, we need to evaluate the argument twice. 
+    # That's because this is a macro; we're not getting the 
+    # evaluated version of the argument, we're getting the 
+    # AST node. Meaning,  we have to do the evaluation of 
+    # arguments, which happens automatically  for functions, 
+    # manually. After that, we *actually* evaluate the argument :)
+
+    {argument, env} = eval(node, env)
+    eval(argument, env)
+  end
 
   @doc """
   An execution branch based a on the `condition`.
@@ -103,7 +113,7 @@ defmodule Signo.SpecialForms do
     if Enum.all?(args, &is_struct(&1, Symbol)) do
       {Lambda.new(args, body, env), env}
     else
-      raise TypeError, pos
+      raise TypeError, position: pos
     end
   end
 
