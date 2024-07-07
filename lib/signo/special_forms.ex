@@ -47,10 +47,8 @@ defmodule Signo.SpecialForms do
   An execution branch based a on the `condition`.
   
   If truthy, `then` gets evaluated. If falsy, `otherwise` gets 
-  evaluated.
-  
-  If `otherwise` is not passed, and `condition` evaluated to a
-  falsy value, `()` gets returned.
+  evaluated. If `otherwise` is not passed, and `condition` evaluated 
+  to a falsy value, `()` gets returned.
 
       sig> (if (== 2 (+ 1 1)) (print "math works") (print "universe is broken"))
       math works
@@ -101,8 +99,8 @@ defmodule Signo.SpecialForms do
   If the function takes only a single argument, the
   parentheses around the argument list can be omitted:
 
-    sig> (lambda n (* 2 n))
-    <lambda>(n -> ...)
+      sig> (lambda n (* 2 n))
+      <lambda>(n -> ...)
 
   """
   def lambda([%Symbol{} = arg, body], env) do
