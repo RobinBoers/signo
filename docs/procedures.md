@@ -46,49 +46,42 @@ We call this a procedure. In Signo, there's three different types of callables:
 
 A perceptive reader might now wonder: how does one introduce an actual list in ones program, if lists are always treated as function calls? 
 
-Great question! In Signo there's two ways to declare a list literal:
-
-- Quoting
-- `Signo.StdLib.tie/1`
-
-### Quoting
-
-Whenever an expression is preTODO by a quote, it's not directly evaluated. Instead, the AST node is passed as-is, effectively turning program code into data:
+Great question! Most Lisp dialects solve this by using the quoting mechanism. Simply put, the quote prevents a list--or any expression for that matter--from being evaluated. Instead, the node is passed as-is, effectively turning program code into data:
 
 ```lisp
-sig> (let x '(print 10))
-(print 10)
+sig> (let x '(something 10))
+(something 10)
 ```
 
-The variable `x` is now assigned to a list containing the symbol `print` and the number `10`. This list can now be passed around, just like you would pass around any other value:
+> #### Some more playing around {: .neutral}
+> The variable `x` is now assigned to a list containing the symbol `print` and the number `10`. This list can be passed around, just like you would pass around any other value:
+>
+> ```lisp
+> sig> (def hello (thing) (print thing))
+> <lambda>(thing -> ...)
+> sig> (hello x)
+> (something 10)
+> ```
+> 
+> It can be turned back into program code by evaluating it using `Signo.SpecialForms._eval/> 2`. But since `something` is not defined within current scope, that will raise a > ReferenceError:
+> 
+> ```lisp
+> sig> (eval x)
+> [ReferenceError] 'something' is undefined at nofile:1:7
+> ```
+>
+> (However, if we define `something` beforehand, or pass some other Standard Library function, such as `print`, this would work :))
+
+This may alert the observant reader once again; what if I want to create a list out of a set of expressions? Because if the quote stops the expression from evaluating, any nested expressions will stay untouched too. And that's correct:
 
 ```lisp
-sig> (def hello (thing) (print thing))
-<lambda>(thing -> ...)
-sig> (hello x)
-(print 10)
+sig> '(1 2 (+ 1 2))
+(1 2 (+ 1 2))
 ```
 
-And it can be manipulated with Standard Library functions, such as `Signo.StdLib.push/1`:
+That's what the `Signo.StdLib.tie/1` function is for. The difference here is that `tie` evaluates the arguments before turning them into a list, meaning `(+ 1 2)` will be resolved before being put into the list:
 
 ```lisp
-sig> (push 'hello' x)
-('hello' print 10)
-```
-
-The list can be turned back into program code by evaluating it using `Signo.SpecialForms._eval/2`:
-
-```lisp
-sig> (eval x)
-10
-#ok
-```
-
-### Tie-ing
-
-Another way to create lists is using `Signo.StdLib.tie/1`. The difference here is that `tie` evaluated the arguments before turning them into a list, meaning `print` will be resolved before being put into the list:
-
-```lisp
-sig> (tie print 10)
-(<builtin>(print) 10)
+sig> (tie 1 2 (+ 1 2))
+(1 2 3)
 ```
