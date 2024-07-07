@@ -75,9 +75,9 @@ defmodule Signo.SpecialForms do
       [ReferenceError] x is undefined at nofile:2:8
 
   """
-  def _do(expression, env) do
-    {value, _} = eval_list(expression, env)
-    {value, env}
+  def _do(expressions, env) do
+    {values, _} = eval_list(expressions, env)
+    {Elixir.List.last(values), env}
   end
 
   @doc """

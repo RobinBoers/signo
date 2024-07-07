@@ -731,7 +731,7 @@ defmodule Signo.StdLib do
   @doc section: :lists
   @spec push([AST.value() | List.t()]) :: List.t()
   def push([item, %List{expressions: expressions}]) when is_value(item) do
-    List.new([expressions] ++ [item])
+    List.new(expressions ++ [item])
   end
 
   @doc """
