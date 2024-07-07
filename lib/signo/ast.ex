@@ -70,13 +70,13 @@ defmodule Signo.AST do
     end
 
     @spec new([AST.expression()], Position.t()) :: t()
-    def new(expressions, pos) do
+    def new([_ | _] = expressions, pos) do
       %__MODULE__{expressions: expressions, pos: pos}
     end
 
     defimpl Elixir.String.Chars do
       def to_string(%@for{expressions: expressions}) do
-        "<list>(#{Enum.join(expressions, " ")})"
+        "(#{Enum.join(expressions, " ")})"
       end
     end
   end

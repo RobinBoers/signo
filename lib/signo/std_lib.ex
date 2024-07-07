@@ -526,23 +526,10 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Returns the number of Unicode graphemes in a UTF-8 string.
-
-      sig> (length 'hellö')
-      5
-
-  """
-  @doc section: :strings
-  @spec length([String.t()]) :: Number.t()
-  def length([%String{value: a}]) do
-    a |> Elixir.String.length() |> Number.new()
-  end
-
-  @doc """
   Converts all characters in the given string to lowercase.
 
-      sig> (downcase 'HELLÖ')
-      'hellö'
+      sig> (downcase "HELLÖ")
+      "hellö"
 
   """
   @doc section: :strings
@@ -554,8 +541,8 @@ defmodule Signo.StdLib do
   @doc """
   Converts all characters in the given string to uppercase.
 
-      sig> (upcase 'hellö')
-      'HELLÖ'
+      sig> (upcase "hellö")
+      "HELLÖ"
 
   """
   @doc section: :strings
@@ -567,8 +554,8 @@ defmodule Signo.StdLib do
   @doc """
   Converts the first character in the given string to uppercase and the remainder to lowercase.
 
-      sig> (capitalize 'olá')
-      'Olá'
+      sig> (capitalize "olá")
+      "Olá"
 
   """
   @doc section: :strings
@@ -580,7 +567,7 @@ defmodule Signo.StdLib do
   @doc """
   Returns a string where all leading and trailing Unicode whitespaces have been removed.
 
-      sig> (trim '   signo  ')
+      sig> (trim "   signo  ")
       'signo'
 
   """
@@ -591,31 +578,52 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Concatenates two strings or two lists.
+  Returns the amount of elements in a list of or 
+  the number of Unicode graphemes in a UTF-8 string.
 
-      sig> (concat 'hell' 'o')
-      'hello'
-      sig> (concat (list a b) (list c d))
-      <list>(a b c d)
+      sig> (length '(1 2 3))
+      3
+      sig> (length "hellö")
+      5
 
   """
-  @doc section: :strings
-  @spec concat([String.t()]) :: String.t()
-  def concat([a, b]) when both_strings(a, b) do
-    a.value <> b.value
+  @doc section: :lists
+  @spec length([List.t()]) :: Number.t()
+  def length([%List{expressions: expressions}]) do
+    expressions |> Kernel.length() |> Number.new()
   end
 
+  @spec length([String.t()]) :: Number.t()
+  def length([%String{value: a}]) do
+    a |> Elixir.String.length() |> Number.new()
+  end
+
+  @doc """
+  Concatenates two lists or two strings.
+
+      sig> (concat '(a b) '(c d))
+      (a b c d)
+      sig> (concat "hell" "o")
+      "hello"
+
+  """
   @doc section: :lists
   @spec concat([List.t()]) :: List.t()
   def concat([a, b]) when both_lists(a, b) do
     List.new(a.expressions ++ b.expressions)
   end
 
-  @doc """
-  Returns the first item of a list.
+  @spec concat([String.t()]) :: String.t()
+  def concat([a, b]) when both_strings(a, b) do
+    String.new(a.value <> b.value)
+  end
 
-      sig> (first (list 'hell' 'o'))
-      'hell'
+  @doc """
+  Returns the first item of a list or
+  the first Unicode grapheme in a string.
+
+      sig> (first ("hell" "o"))
+      "hell"
 
   """
   @doc section: :lists
@@ -623,12 +631,25 @@ defmodule Signo.StdLib do
   def first([%List{expressions: []}]), do: Nil.new()
   def first([%List{expressions: [head | _]}]), do: head
 
-  @doc """
-  Returns the last item of a list.
+  @spec first([String.t()]) :: String.t() | Nil.t()
+  def first([%String{value: ""}]), do: Nil.new()
+  def first([%String{value: a}]) do
+    if first = Elixir.String.first(a),
+      do: String.new(first),
+      else: Nil.new()
+  end
 
-      sig> (last (list 'hell' 'o'))
-      'o'
-      sig> (last (list))
+  @doc """
+  Returns the last item of a list or 
+  the last Unicode grapheme in a string.
+
+      sig> (last '(1 2 3))
+      3
+      sig> (last ())
+      ()
+      sig> (last "hellö")
+      "ö"
+      sig> (last "")
       ()
 
   """
@@ -638,12 +659,24 @@ defmodule Signo.StdLib do
     Elixir.List.last(expressions, Nil.new())
   end
 
-  @doc """
-  Returns the last item of a list.
+  @spec last([String.t()]) :: String.t()
+  def last([%String{value: a}]) do
+    if last = Elixir.String.last(a),
+      do: String.new(last),
+      else: Nil.new()
+  end
 
-      sig> (nth 1 '("hell" "o"))
-      'o'
-      sig> (nth 2 '("hell" "o"))
+  @doc """
+  Returns the element at `index` in a list,
+  or the Unicode grapheme at `index` in a string.
+
+      sig> (nth 1 '(1 2 3))
+      2
+      sig> (nth 3 '(1 2 3))
+      ()
+      sig> (nth 4 "hellö")
+      "ö"
+      sig> (nth 5 "hellö")
       ()
 
   """
@@ -653,17 +686,27 @@ defmodule Signo.StdLib do
     Enum.at(expressions, index, Nil.new())
   end
 
-  @doc """
-  Pushes the given item onto the list.
+  @spec nth([String.t()]) :: String.t()
+  def nth([%Number{value: index}, %String{value: a}]) do
+    if grapheme = Elixir.String.last(a),
+      do: String.new(grapheme),
+      else: Nil.new()
+  end
 
-      sig> (push "world" '("hell" "o"))
-      <list>("hell" "o" "world")
+  @doc """
+  Pushes the given item onto the end of a list.
+
+  Look out: this function *only accepts lists*. To
+  concatinate strings, use `concat/2`.
+
+      sig> (push 3 '(3 1 2))
+      (3 1 2)
 
   """
   @doc section: :lists
   @spec push([AST.value() | List.t()]) :: List.t()
   def push([item, %List{expressions: expressions}]) when is_value(item) do
-    List.new([item | expressions])
+    List.new([expressions] ++ [item])
   end
 
   @doc """
@@ -671,19 +714,31 @@ defmodule Signo.StdLib do
   and the remainder of the old list.
 
       sig> (pop '("hell" "o" "world"))
-      <list>("hell" <list>("o" "world"))
-      sig> (pop '())
-      <list>((), ()))
+      ("hell" ("o" "world"))
+      sig> (pop ())
+      ((), ()))
+      sig> (pop "hello")
+      ("h", "ello"))
+      sig> (pop "")
+      ((), ""))
 
   """
   @doc section: :lists
   @spec pop([List.t()]) :: List.t()
-  def pop([%List{expressions: []}]) do
-    List.new([Nil.new(), List.new([])])
+  def pop([%List{} = list]) do
+    case list.expressions do
+      [] -> List.new([Nil.new(), Nil.new()])
+      [head] -> List.new([head, Nil.new()])
+      [head | tail] -> List.new([head, List.new(tail)])
+    end
   end
 
-  def pop(%List{expressions: [head | tail]}) do
-    List.new([head, List.new(tail)])
+  @spec pop([String.t()]) :: List.new()
+  def pop([%String{value: a}]) do
+    case String.next_grapheme(a) do
+      {char, rest} -> List.new([String.new(char), String.new(rest)])
+      nil -> List.new([Nil.new(), String.new("")])
+    end
   end
 
   @doc """
@@ -692,13 +747,13 @@ defmodule Signo.StdLib do
   Raises `Signo.Interpreter.TypeError` if one of the elements of
   the list is not a number.
 
-      sig> (sum (list 1 2 3))
+      sig> (sum '(1 2 3))
       6
 
   """
   @doc section: :lists
-  @spec sum(List.t()) :: Number.t()
-  def sum(%List{expressions: expressions}) do
+  @spec sum([List.t()]) :: Number.t()
+  def sum([%List{expressions: expressions}]) do
     expressions
     |> Enum.reduce(0, fn %Number{value: num}, sum -> num + sum end)
     |> Number.new()
@@ -710,13 +765,13 @@ defmodule Signo.StdLib do
   Raises `Signo.Interpreter.TypeError` if one of the elements of
   the list is not a number.
 
-      sig> (product (list 2 3 4))
+      sig> (product '(2 3 4))
       24
 
   """
   @doc section: :lists
-  @spec product(List.t()) :: Number.t()
-  def product(%List{expressions: expressions}) do
+  @spec product([List.t()]) :: Number.t()
+  def product([%List{expressions: expressions}]) do
     expressions
     |> Enum.reduce(0, fn %Number{value: num}, prod -> prod * num end)
     |> Number.new()
@@ -725,13 +780,13 @@ defmodule Signo.StdLib do
   @doc """
   Joins the given list into a string with the second argument as seperator.
 
-      sig> (join (list 2 3 4) ', ')
-      '2, 3, 4'
+      sig> (join '(2 3 4) ", ")
+      "2, 3, 4"
 
   """
   @doc section: :lists
-  @spec join(List.t(), String.t()) :: String.t()
-  def join(%List{expressions: expressions}, %String{value: joiner}) do
+  @spec join([List.t() | String.t()]) :: String.t()
+  def join([%List{expressions: expressions}, %String{value: joiner}]) do
     expressions |> Enum.join(joiner) |> String.new()
   end
 end
