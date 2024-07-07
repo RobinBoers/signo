@@ -41,7 +41,7 @@ defmodule Signo.MixProject do
       "docs/example.md"
     ],
     groups_for_modules: [
-      "Standard Library": [Signo.StdLib],
+      "Standard Library": [Signo.StdLib, Signo.SpecialForms],
       "AST": [~r/Signo.AST/]
     ],
     groups_for_docs: [
