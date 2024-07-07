@@ -45,7 +45,7 @@ defmodule Signo.SpecialForms do
 
   @doc """
   An execution branch based a on the `condition`.
-  
+
   If truthy, `then` gets evaluated. If falsy, `otherwise` gets 
   evaluated. If `otherwise` is not passed, and `condition` evaluated 
   to a falsy value, `()` gets returned.
@@ -64,9 +64,9 @@ defmodule Signo.SpecialForms do
 
   def _if([condition, then, otherwise], env) do
     {value, scope} = eval(condition, env)
-    {value, _} = if truthy?(value), 
-      do: eval(then, scope), 
-      else: eval(otherwise, scope)
+    {value, _} = if truthy?(value),
+        do: eval(then, scope),
+        else: eval(otherwise, scope)
 
     {value, env}
   end

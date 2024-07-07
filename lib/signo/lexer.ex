@@ -97,7 +97,7 @@ defmodule Signo.Lexer do
     lex(rest, [token | tokens], inc(pos, collected))
   end
 
-  defp determine_type("#" <> a),  do: {:literal, String.to_atom(a)}
+  defp determine_type("#" <> a), do: {:literal, String.to_atom(a)}
   defp determine_type(_lexeme), do: :symbol
 
   defp read_next_char(_chars = [ch | rest], tokens, pos) do

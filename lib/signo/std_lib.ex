@@ -74,7 +74,7 @@ defmodule Signo.StdLib do
         "pop" => Builtin.new(:pop),
         "sum" => Builtin.new(:sum),
         "product" => Builtin.new(:product),
-        "join" => Builtin.new(:join),
+        "join" => Builtin.new(:join)
       }
     }
   end
@@ -658,6 +658,7 @@ defmodule Signo.StdLib do
 
   @spec first([String.t()]) :: String.t() | Nil.t()
   def first([%String{value: ""}]), do: Nil.new()
+
   def first([%String{value: a}]) do
     if first = Elixir.String.first(a),
       do: String.new(first),
