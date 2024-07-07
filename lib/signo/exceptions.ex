@@ -61,7 +61,7 @@ defmodule Signo.TypeError do
 
   @impl true
   def exception(position: pos) do
-    %__MODULE__{message: "mismatched types at #{pos}"}
+    %__MODULE__{message: "mismatched types or mismatched number of arguments at #{pos}"}
   end
 end
 
