@@ -3,6 +3,8 @@ defmodule Signo.Logger do
 
   import IO.ANSI
 
+  @hide :"do not show this result in output"
+
   @spec log_error(Exception.t()) :: :ok
   def log_error(exception) do
     exception
@@ -12,6 +14,7 @@ defmodule Signo.Logger do
   end
 
   @spec log_expression(term()) :: :ok
+  def log_expression(%Signo.AST.Atom{value: @hide}), do: :ok
   def log_expression(%Signo.AST.String{value: string}) do
     log_expression("'#{string}'")
   end

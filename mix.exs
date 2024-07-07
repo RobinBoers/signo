@@ -53,6 +53,7 @@ defmodule Signo.MixProject do
       Math: & &1[:section] == :math,
       Strings: & &1[:section] == :strings,
       Lists: & &1[:section] == :lists,
+      REPL: & &1[:section] == :repl
     ]
   ]
 end

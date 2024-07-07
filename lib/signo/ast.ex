@@ -39,7 +39,14 @@ defmodule Signo.AST do
           | AST.Number.t()
           | AST.Atom.t()
           | AST.String.t()
-          | AST.Lambda.t()
+          | callable()
+
+  @typedoc """
+  Values to which arguments can be applied,
+  aka a head to a procedure.
+  """
+  @type callable ::
+          AST.Lambda.t()
           | AST.Builtin.t()
           | AST.Macro.t()
 

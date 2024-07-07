@@ -28,61 +28,60 @@ defmodule Signo.StdLib do
   @doc false
   @spec kernel() :: Env.t()
   def kernel do
-    %Env{
-      scope: %{
-        "let" => Macro.new(:let),
-        "eval" => Macro.new(:_eval),
-        "if" => Macro.new(:_if),
-        "do" => Macro.new(:_do),
-        "lambda" => Macro.new(:lambda),
-        "def" => Macro.new(:_def),
-        "print" => Builtin.new(:print),
-        "not" => Builtin.new(:_not),
-        "and" => Builtin.new(:_and),
-        "or" => Builtin.new(:_or),
-        "nor" => Builtin.new(:_nor),
-        "xor" => Builtin.new(:_xor),
-        "==" => Builtin.new(:eq),
-        "!=" => Builtin.new(:not_eq),
-        ">" => Builtin.new(:gt),
-        ">=" => Builtin.new(:gte),
-        "<" => Builtin.new(:lt),
-        "<=" => Builtin.new(:lte),
-        "+" => Builtin.new(:add),
-        "-" => Builtin.new(:sub),
-        "*" => Builtin.new(:mult),
-        "/" => Builtin.new(:div),
-        "^" => Builtin.new(:pow),
-        "sqrt" => Builtin.new(:sqrt),
-        "abs" => Builtin.new(:abs),
-        "pi" => Builtin.new(:pi),
-        "tau" => Builtin.new(:tau),
-        "sin" => Builtin.new(:sin),
-        "cos" => Builtin.new(:cos),
-        "tan" => Builtin.new(:tan),
-        "asin" => Builtin.new(:asin),
-        "acos" => Builtin.new(:acos),
-        "atan" => Builtin.new(:atan),
-        "ln" => Builtin.new(:ln),
-        "log" => Builtin.new(:log),
-        "logn" => Builtin.new(:logn),
-        "upcase" => Builtin.new(:upcase),
-        "downcase" => Builtin.new(:downcase),
-        "capitalize" => Builtin.new(:capitalize),
-        "trim" => Builtin.new(:trim),
-        "length" => Builtin.new(:length),
-        "concat" => Builtin.new(:concat),
-        "tie" => Builtin.new(:tie),
-        "first" => Builtin.new(:first),
-        "last" => Builtin.new(:last),
-        "nth" => Builtin.new(:nth),
-        "push" => Builtin.new(:push),
-        "pop" => Builtin.new(:pop),
-        "sum" => Builtin.new(:sum),
-        "product" => Builtin.new(:product),
-        "join" => Builtin.new(:join)
-      }
-    }
+    %Env{scope: %{
+      "let" => Macro.new(:let),
+      "eval" => Macro.new(:_eval),
+      "if" => Macro.new(:_if),
+      "do" => Macro.new(:_do),
+      "lambda" => Macro.new(:lambda),
+      "def" => Macro.new(:_def),
+      "print" => Builtin.new(:print),
+      "not" => Builtin.new(:_not),
+      "and" => Builtin.new(:_and),
+      "or" => Builtin.new(:_or),
+      "nor" => Builtin.new(:_nor),
+      "xor" => Builtin.new(:_xor),
+      "==" => Builtin.new(:eq),
+      "!=" => Builtin.new(:not_eq),
+      ">" => Builtin.new(:gt),
+      ">=" => Builtin.new(:gte),
+      "<" => Builtin.new(:lt),
+      "<=" => Builtin.new(:lte),
+      "+" => Builtin.new(:add),
+      "-" => Builtin.new(:sub),
+      "*" => Builtin.new(:mult),
+      "/" => Builtin.new(:div),
+      "^" => Builtin.new(:pow),
+      "sqrt" => Builtin.new(:sqrt),
+      "abs" => Builtin.new(:abs),
+      "pi" => Builtin.new(:pi),
+      "tau" => Builtin.new(:tau),
+      "sin" => Builtin.new(:sin),
+      "cos" => Builtin.new(:cos),
+      "tan" => Builtin.new(:tan),
+      "asin" => Builtin.new(:asin),
+      "acos" => Builtin.new(:acos),
+      "atan" => Builtin.new(:atan),
+      "ln" => Builtin.new(:ln),
+      "log" => Builtin.new(:log),
+      "logn" => Builtin.new(:logn),
+      "upcase" => Builtin.new(:upcase),
+      "downcase" => Builtin.new(:downcase),
+      "capitalize" => Builtin.new(:capitalize),
+      "trim" => Builtin.new(:trim),
+      "length" => Builtin.new(:length),
+      "concat" => Builtin.new(:concat),
+      "tie" => Builtin.new(:tie),
+      "first" => Builtin.new(:first),
+      "last" => Builtin.new(:last),
+      "nth" => Builtin.new(:nth),
+      "push" => Builtin.new(:push),
+      "pop" => Builtin.new(:pop),
+      "sum" => Builtin.new(:sum),
+      "product" => Builtin.new(:product),
+      "join" => Builtin.new(:join),
+      "clear" => Builtin.new(:clear)
+    }}
   end
 
   defguardp both_numbers(a, b) when is_struct(a, Number) and is_struct(b, Number)
@@ -820,5 +819,27 @@ defmodule Signo.StdLib do
   @spec join([List.t() | String.t()]) :: String.t()
   def join([%List{expressions: expressions}, %String{value: joiner}]) do
     expressions |> Enum.join(joiner) |> String.new()
+  end
+
+  @doc """
+  Clears the console screen.
+
+  This function only works if ANSI escape codes are enabled on the shell, 
+  which means this function is by default unavailable on Windows machines.
+  """
+  @doc section: :repl
+  @spec clear([]) :: Atom.t()
+  def clear([]) do
+    if IO.ANSI.enabled?() do
+      IO.write([IO.ANSI.home(), IO.ANSI.clear()])
+    else
+      IO.puts("Cannot clear the screen because ANSI escape codes are not enabled on this shell")
+    end
+
+    dont_display_result()
+  end
+
+  defp dont_display_result do
+    Atom.new(:"do not show this result in output")
   end
 end
