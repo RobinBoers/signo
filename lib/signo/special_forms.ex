@@ -39,8 +39,9 @@ defmodule Signo.SpecialForms do
     # That's because this is a macro; we're not getting the 
     # evaluated version of the argument, we're getting the 
     # AST node. Meaning,  we have to do the evaluation of 
-    # arguments, which happens automatically  for functions, 
-    # manually. After that, we *actually* evaluate the argument :)
+    # arguments, which usually happens automatically (for
+    # functions), manually. After that, we *actually* evaluate 
+    # the argument :)
 
     {argument, env} = eval(node, env)
     eval(argument, env)
@@ -88,7 +89,7 @@ defmodule Signo.SpecialForms do
   """
   def _do(expressions, env) do
     {values, _} = eval_list(expressions, env)
-    {Elixir.List.last(values), env}
+    {hd(values), env}
   end
 
   @doc """
