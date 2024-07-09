@@ -30,11 +30,12 @@ defmodule Signo.StdLib do
   def kernel do
     %Env{scope: %{
       "let" => Macro.new(:let),
-      "eval" => Macro.new(:_eval),
+      "eval" => Macro.new(:eval),
       "if" => Macro.new(:_if),
       "do" => Macro.new(:_do),
       "lambda" => Macro.new(:lambda),
       "def" => Macro.new(:_def),
+      "include" => Macro.new(:include),
       "print" => Builtin.new(:print),
       "not" => Builtin.new(:_not),
       "and" => Builtin.new(:_and),

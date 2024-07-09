@@ -62,7 +62,7 @@ defmodule Signo.Interpreter do
         {apply(StdLib, definition, [Enum.reverse(params)]), env}
 
       %Macro{definition: definition} ->
-        apply(SpecialForms, definition, [params, env])
+        apply(SpecialForms, definition, [params, env, pos])
 
       node ->
         raise RuntimeError, message: "#{node} is not callable", position: pos

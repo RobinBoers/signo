@@ -67,6 +67,16 @@ defmodule Signo do
     |> evaluate!()
   end
 
+  @doc false
+  @spec eval_file!(Path.t(), Env.t()) :: {AST.value(), Env.t()}
+  def eval_file!(path, env) do
+    path
+    |> File.read!()
+    |> lex!(path)
+    |> parse!()
+    |> evaluate!(env)
+  end
+
   @doc """
   Compiles and evaluates a string of Signo source code.
 

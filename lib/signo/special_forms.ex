@@ -8,6 +8,7 @@ defmodule Signo.SpecialForms do
   alias Signo.AST.Lambda
   alias Signo.AST.List
   alias Signo.AST.Nil
+  alias Signo.AST.String
   alias Signo.AST.Symbol
   alias Signo.Env
   alias Signo.TypeError
@@ -21,7 +22,7 @@ defmodule Signo.SpecialForms do
       20
 
   """
-  def let([%Symbol{reference: ref}, initializer], env) do
+  def let([%Symbol{reference: ref}, initializer], env, _) do
     {value, env} = eval(initializer, env)
     {value, Env.assign(env, ref, value)}
   end
@@ -34,7 +35,7 @@ defmodule Signo.SpecialForms do
       #ok
 
   """
-  def _eval([node], env) do
+  def eval([node], env, _) do
     # Unintuatively, we need to evaluate the argument twice. 
     # That's because this is a macro; we're not getting the 
     # evaluated version of the argument, we're getting the 
@@ -62,11 +63,11 @@ defmodule Signo.SpecialForms do
       ()
 
   """
-  def _if([condition, then], env) do
-    _if([condition, then, Nil.new()], env)
+  def _if([condition, then], env, pos) do
+    _if([condition, then, Nil.new()], env, pos)
   end
 
-  def _if([condition, then, otherwise], env) do
+  def _if([condition, then, otherwise], env, _) do
     {value, scope} = eval(condition, env)
     {value, _} = if truthy?(value),
         do: eval(then, scope),
@@ -87,7 +88,7 @@ defmodule Signo.SpecialForms do
       [ReferenceError] x is undefined at nofile:2:8
 
   """
-  def _do(expressions, env) do
+  def _do(expressions, env, _) do
     {values, _} = eval_list(expressions, env)
     {hd(values), env}
   end
@@ -107,11 +108,11 @@ defmodule Signo.SpecialForms do
       <lambda>(n -> ...)
 
   """
-  def lambda([%Symbol{} = arg, body], env) do
-    lambda([List.new([arg], arg.pos), body], env)
+  def lambda([%Symbol{} = arg, body], env, pos) do
+    lambda([List.new([arg], arg.pos), body], env, pos)
   end
 
-  def lambda([%List{expressions: args, pos: pos}, body], env) do
+  def lambda([%List{expressions: args, pos: pos}, body], env, _) do
     if Enum.all?(args, &is_struct(&1, Symbol)) do
       {Lambda.new(args, body, env), env}
     else
@@ -133,8 +134,26 @@ defmodule Signo.SpecialForms do
       <lambda>(a b -> ...)
 
   """
-  def _def([%Symbol{reference: name} = ref, args, body], env) do
-    {lambda, env} = lambda([args, body], env)
-    let([ref, %Lambda{lambda | self: name}], env)
+  def _def([%Symbol{reference: name} = ref, args, body], env, pos) do
+    {lambda, env} = lambda([args, body], env, pos)
+    let([ref, %Lambda{lambda | self: name}], env, pos)
+  end
+
+  @doc """
+  Compiles and executes another file at runtime.
+
+      # example.sg
+      (print "hello from example.sg!")
+
+      sig> (include "example.sg")
+      hello from example.sg!
+      #ok
+
+  """
+  def include([%String{value: path}], env, pos) do
+    base = if pos.path != :nofile, 
+      do: Path.dirname(pos.path), else: ""
+
+    Signo.eval_file!(Path.join(base, path), env)
   end
 end
