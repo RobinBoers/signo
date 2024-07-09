@@ -3,9 +3,18 @@
 SRC="main.sg"
 DOC="doc"
 
+# build() {
+#   mix compile >/dev/null
+#   mix execute $SRC
+# }
+
 build() {
-  mix compile >/dev/null
-  mix execute $SRC
+  rm -rf _build/out.S
+  mix run -e "Signo.main()" > _build/out.S
+  nasm -f macho64 _build/out.S -o _build/out.o
+  ld -arch x86_64 _build/out.o -o _build/out -platform_version macos 13.0 14.5
+  arch -x86_64 _build/out
+  echo $?
 }
 
 check() {

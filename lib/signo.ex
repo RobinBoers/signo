@@ -15,6 +15,7 @@ defmodule Signo do
   """
 
   alias Signo.AST
+  alias Signo.Compiler
   alias Signo.Env
   alias Signo.Interpreter
   alias Signo.Lexer
@@ -22,6 +23,18 @@ defmodule Signo do
   alias Signo.Position
   alias Signo.REPL
   alias Signo.Token
+
+  @doc false
+  def main do
+    "(+ 1 (+ 2 3))"
+    |> lex!()
+    |> parse!()
+    |> compile!()
+  end
+
+  @doc false
+  @spec compile!(AST.t()) :: :ok
+  defdelegate compile!(ast), to: Compiler
 
   @doc """
   Returns the Signo version string.
