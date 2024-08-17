@@ -40,6 +40,12 @@
 (def fact (n) (if (!= n 1) (* n (fact (- n 1))) 1))
 (print (fact 4))
 
+; inspect pretty prints any expression and returns it,
+; print stringifies compatible expressions (strings, atoms, nil, numbers)
+; and returns ok
+(inspect print)
+(print (inspect #apple)) ; prints "#apple" and then "apple"
+
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
 (print (do

@@ -8,7 +8,7 @@ defmodule Signo.Interpreter do
   alias Signo.AST.Builtin
   alias Signo.AST.Lambda
   alias Signo.AST.List
-  alias Signo.AST.Macro
+  alias Signo.AST.Construct
   alias Signo.AST.Nil
   alias Signo.AST.Quoted
   alias Signo.AST.Symbol
@@ -61,7 +61,7 @@ defmodule Signo.Interpreter do
         {params, env} = eval_list(params, env)
         {apply(StdLib, definition, [Enum.reverse(params)]), env}
 
-      %Macro{definition: definition} ->
+      %Construct{definition: definition} ->
         apply(SpecialForms, definition, [params, env, pos])
 
       node ->

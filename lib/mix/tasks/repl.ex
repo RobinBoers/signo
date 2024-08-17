@@ -8,10 +8,11 @@ defmodule Mix.Tasks.Repl do
       Interactive Signo v0.1.0 (Elixir/1.16.2)
       sig(1)> (print "hello world")
       hello world
+      #ok
       sig(2)>
 
   Turns out Elixir and Erlang make something as simple as a readline *a fucking nightmare*
-  to setup. So if you want a decent typing experience, consider installing
+  to implement. So if you want a decent typing experience, consider installing
   [rlwrap](https://github.com/hanslub42/rlwrap) and running the REPL like this:
 
       rlwrap mix repl

@@ -19,7 +19,7 @@ defmodule Signo.StdLib do
   alias Signo.AST.Atom
   alias Signo.AST.Builtin
   alias Signo.AST.List
-  alias Signo.AST.Macro
+  alias Signo.AST.Construct
   alias Signo.AST.Nil
   alias Signo.AST.Number
   alias Signo.AST.String
@@ -29,13 +29,14 @@ defmodule Signo.StdLib do
   @spec kernel() :: Env.t()
   def kernel do
     %Env{scope: %{
-      "let" => Macro.new(:let),
-      "eval" => Macro.new(:eval),
-      "if" => Macro.new(:_if),
-      "do" => Macro.new(:_do),
-      "lambda" => Macro.new(:lambda),
-      "def" => Macro.new(:_def),
-      "include" => Macro.new(:include),
+      "let" => Construct.new(:let),
+      "eval" => Construct.new(:eval),
+      "if" => Construct.new(:_if),
+      "do" => Construct.new(:_do),
+      "lambda" => Construct.new(:lambda),
+      "def" => Construct.new(:_def),
+      "include" => Construct.new(:include),
+      "inspect" => Builtin.new(:inspect),
       "print" => Builtin.new(:print),
       "not" => Builtin.new(:_not),
       "and" => Builtin.new(:_and),
@@ -92,7 +93,32 @@ defmodule Signo.StdLib do
   defguardp both_values(a, b) when is_value(a) and is_value(b)
 
   @doc """
-  Prints the given argument to stdout, and returns `#ok`.
+  Pretty prints the given argument to stdout, returns the given
+  argument.
+
+      sig> (inspect if)
+      <macro>(if)
+      <macro>(if)
+
+  """
+  @doc section: :general
+  @spec inspect([AST.value()]) :: Atom.t()
+  def inspect([value]) when is_value(value) do
+    IO.inspect(value)
+  end
+
+  @doc """
+  Prints a string representation of the given argument
+  to stdout, and returns `#ok`.
+
+  Only works for builtin types implementing `String.Chars`:
+
+    - Strings
+    - Numbers
+    - Atoms
+    - Nil
+
+  ## Example
 
       sig> (print 10)
       10
@@ -606,7 +632,7 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Returns the amount of elements in a list of or 
+  Returns the amount of elements in a list of or
   the number of Unicode graphemes in a UTF-8 string.
 
       sig> (length '(1 2 3))
@@ -688,7 +714,7 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Returns the last item of a list or 
+  Returns the last item of a list or
   the last Unicode grapheme in a string.
 
       sig> (last '(1 2 3))
@@ -841,7 +867,7 @@ defmodule Signo.StdLib do
   @doc """
   Clears the console screen.
 
-  This function only works if ANSI escape codes are enabled on the shell, 
+  This function only works if ANSI escape codes are enabled on the shell,
   which means this function is by default unavailable on Windows machines.
   """
   @doc section: :repl

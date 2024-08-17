@@ -15,12 +15,10 @@ defmodule Signo.Logger do
 
   @spec log_expression(term()) :: :ok
   def log_expression(%Signo.AST.Atom{value: @hide}), do: :ok
-  def log_expression(%Signo.AST.String{value: string}) do
-    log_expression("'#{string}'")
-  end
 
   def log_expression(expression) do
-    "#{expression}"
+    expression
+    |> inspect()
     |> blue()
     |> IO.puts()
   end

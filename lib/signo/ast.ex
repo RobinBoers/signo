@@ -81,9 +81,10 @@ defmodule Signo.AST do
       %__MODULE__{expressions: expressions, pos: pos}
     end
 
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{expressions: expressions}) do
-        "(#{Enum.join(expressions, " ")})"
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{expressions: expressions}, opts) do
+        concat(["("] ++ Enum.map(expressions, &Kernel.inspect(&1, opts)) ++ [")"])
       end
     end
   end
@@ -100,6 +101,13 @@ defmodule Signo.AST do
     @spec new(AST.expression()) :: t()
     def new(expression) do
       %__MODULE__{expression: expression}
+    end
+
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{expression: expression}, opts) do
+        concat(["'", Kernel.inspect(expression, opts)])
+      end
     end
 
     defimpl Elixir.String.Chars do
@@ -122,8 +130,15 @@ defmodule Signo.AST do
       %__MODULE__{}
     end
 
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{}, _opts) do
+        concat(empty(), "()")
+      end
+    end
+
     defimpl Elixir.String.Chars do
-      def to_string(%@for{}), do: "()"
+      def to_string(%@for{}), do: ""
     end
   end
 
@@ -132,13 +147,20 @@ defmodule Signo.AST do
     A number value.
     """
 
-    typedstruct enforuce: true do
+    typedstruct enforce: true do
       field :value, number()
     end
 
     @spec new(number()) :: t()
     def new(number) do
       %__MODULE__{value: number}
+    end
+
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{value: number}, opts) do
+        Kernel.inspect(number, opts)
+      end
     end
 
     defimpl Elixir.String.Chars do
@@ -153,7 +175,7 @@ defmodule Signo.AST do
     An atom value.
     """
 
-    typedstruct enforuce: true do
+    typedstruct enforce: true do
       field :value, atom()
     end
 
@@ -162,8 +184,17 @@ defmodule Signo.AST do
       %__MODULE__{value: atom}
     end
 
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{value: atom}, _opts) do
+        concat(empty(), "##{atom}")
+      end
+    end
+
     defimpl Elixir.String.Chars do
-      def to_string(%@for{value: atom}), do: "##{atom}"
+      def to_string(%@for{value: atom}) do
+        Kernel.to_string(atom)
+      end
     end
   end
 
@@ -172,13 +203,20 @@ defmodule Signo.AST do
     A string value.
     """
 
-    typedstruct enforuce: true do
+    typedstruct enforce: true do
       field :value, binary()
     end
 
     @spec new(binary()) :: t()
     def new(string) do
       %__MODULE__{value: string}
+    end
+
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{value: string}, _opts) do
+        concat(["\"", string, "\""])
+      end
     end
 
     defimpl Elixir.String.Chars do
@@ -201,8 +239,11 @@ defmodule Signo.AST do
       %__MODULE__{reference: ref, pos: pos}
     end
 
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{reference: ref}), do: ref
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{reference: ref}, _opts) do
+        concat(empty(), ref)
+      end
     end
   end
 
@@ -227,9 +268,16 @@ defmodule Signo.AST do
       }
     end
 
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{arguments: args}) do
-        "<lambda>(#{Enum.map_join(args, " ", & &1.reference)} -> ...)"
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{arguments: args}, opts) do
+        args =
+          args
+          |> Enum.map(&Kernel.inspect(&1.reference, opts))
+          |> Enum.intersperse(break(" "))
+          |> concat()
+
+        concat(["<lambda>(", args, "-> ...)"])
       end
     end
   end
@@ -250,12 +298,15 @@ defmodule Signo.AST do
       %__MODULE__{definition: definition}
     end
 
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{definition: definition}), do: "<builtin>(#{definition})"
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{definition: definition}, _opts) do
+        concat(empty(), "<builtin>(#{definition})")
+      end
     end
   end
 
-  defmodule Macro do
+  defmodule Construct do
     @moduledoc """
     A reference to a macro in the `Signo.SpecialForms`.
     """
@@ -271,8 +322,11 @@ defmodule Signo.AST do
       %__MODULE__{definition: definition}
     end
 
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{definition: definition}), do: "<macro>(#{definition})"
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{definition: definition}, _opts) do
+        concat(empty(), "<macro>(#{definition})")
+      end
     end
   end
 end
