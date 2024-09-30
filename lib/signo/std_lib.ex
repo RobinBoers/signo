@@ -18,8 +18,8 @@ defmodule Signo.StdLib do
   alias Signo.AST
   alias Signo.AST.Atom
   alias Signo.AST.Builtin
-  alias Signo.AST.List
   alias Signo.AST.Construct
+  alias Signo.AST.List
   alias Signo.AST.Nil
   alias Signo.AST.Number
   alias Signo.AST.String

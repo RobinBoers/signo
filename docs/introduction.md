@@ -26,11 +26,11 @@ You can open a REPL (read-evaluate-print loop) by entering `mix repl`:
 $ mix repl
 Erlang/OTP 26 [erts-14.2.1] [source] [64-bit] [smp:11:11] [ds:11:11:10] [async-threads:1] [jit]
 
-Interactive Signo v0.1.0 (Elixir/1.16.2)
-sig(1)> 40 + 2
+Interactive Signo v0.0.1 (Elixir/1.16.2)
+sig(1)> "hello world!"
+"hello world!"
+sig(2)> (+ 40 2)
 42
-sig(2)> 'hello world!'
-'hello world!'
 ```
 
 Go ahead and type some expressions! To exit the REPL, press `Ctrl+C` twice.
@@ -47,7 +47,7 @@ Open up your favorite text editor and write something along these lines to a fil
 
 And then run it like this:
 
-```
+```shell
 $ mix execute hello.sg
 hello, world!
 ```

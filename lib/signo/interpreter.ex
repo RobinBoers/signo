@@ -6,9 +6,9 @@ defmodule Signo.Interpreter do
   alias Signo.AST
   alias Signo.AST.Atom
   alias Signo.AST.Builtin
+  alias Signo.AST.Construct
   alias Signo.AST.Lambda
   alias Signo.AST.List
-  alias Signo.AST.Construct
   alias Signo.AST.Nil
   alias Signo.AST.Quoted
   alias Signo.AST.Symbol

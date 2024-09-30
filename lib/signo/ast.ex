@@ -26,7 +26,7 @@ defmodule Signo.AST do
 
   @typedoc """
   A reference is a key by which a `t:value/0` can
-  be lookup up in the `Signo.Env`.
+  be looked up in the `Signo.Env`.
   """
   @type ref :: binary()
 
@@ -43,7 +43,7 @@ defmodule Signo.AST do
 
   @typedoc """
   Values to which arguments can be applied,
-  aka a head to a procedure.
+  aka the head of a procedure.
   """
   @type callable ::
           AST.Lambda.t()

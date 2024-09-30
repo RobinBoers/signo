@@ -1,6 +1,6 @@
 defmodule Signo.Position do
   @moduledoc """
-  Records the pos of a character or token in the original source code.
+  Records the position of a character or token in the original source code.
   """
   use TypedStruct
 
@@ -36,7 +36,7 @@ defmodule Signo.Position do
   def increment(pos, _chr), do: %__MODULE__{pos | col: pos.col + 1}
 
   defimpl String.Chars do
-    def to_string(pos = %@for{}) do
+    def to_string(%@for{} = pos) do
       "#{pos.path}:#{pos.row}:#{pos.col}"
     end
   end

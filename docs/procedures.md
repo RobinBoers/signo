@@ -57,14 +57,14 @@ sig> (let x '(something 10))
 > The variable `x` is now assigned to a list containing the symbol `print` and the number `10`. This list can be passed around, just like you would pass around any other value:
 >
 > ```lisp
-> sig> (def hello (thing) (print thing))
+> sig> (def hello (thing) (inspect thing))
 > <lambda>(thing -> ...)
-> sig> (hello x)
+> sig> (hello x) ; prints the value, and then returns it as well
 > (something 10)
 > ```
-> 
+>
 > It can be turned back into program code by evaluating it using `Signo.SpecialForms._eval/> 2`. But since `something` is not defined within current scope, that will raise a > ReferenceError:
-> 
+>
 > ```lisp
 > sig> (eval x)
 > [ReferenceError] 'something' is undefined at nofile:1:7

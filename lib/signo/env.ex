@@ -33,6 +33,7 @@ defmodule Signo.Env do
   end
 
   @spec lookup!(nil, AST.ref(), Position.t()) :: no_return()
+  def lookup!(env, ref, pos \\ %Position{})
   def lookup!(nil, ref, pos) do
     raise ReferenceError, reference: ref, position: pos
   end
