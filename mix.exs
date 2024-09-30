@@ -1,19 +1,32 @@
 defmodule Signo.MixProject do
   use Mix.Project
 
+  @documentation "https://hexdocs.pm/signo"
+  @git_repository "https://git.dupunkto.org/~axcelott/signo"
+
   def project, do: [
     name: "Signo",
     app: :signo,
-    version: "0.1.0",
+    version: "0.0.1",
     elixir: "~> 1.16",
     start_permanent: Mix.env() == :prod,
     dialyzer: [plt_add_apps: [:mix]],
     deps: deps(),
 
     # Docs
-    source_url: "https://git.dupunkto.org/axcelott/signo",
-    homepage_url: "https://ftp.dupunkto.org/~axcelott/signo",
+    source_url: @git_repository,
+    homepage_url: @documentation,
+    description: description(),
+    package: package(),
     docs: docs()
+  ]
+
+  def description, do: 
+    "Experimental compiler for a Lisp-inspired language"
+
+  defp package, do: [
+    licenses: ["Unlicense"],
+    links: %{"Sources" => @git_repository}
   ]
 
   def application, do: [

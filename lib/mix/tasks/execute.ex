@@ -10,6 +10,7 @@ defmodule Mix.Tasks.Execute do
 
   alias Signo.Logger
 
+  @impl true
   def run(_args = [path]) when is_binary(path) do
     Signo.eval_file!(path)
   rescue

@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Repl do
   """
   use Mix.Task
 
+  @impl true
   def run(_args) do
     Signo.repl()
   end
