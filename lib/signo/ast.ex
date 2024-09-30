@@ -84,7 +84,13 @@ defmodule Signo.AST do
     defimpl Inspect do
       import Inspect.Algebra
       def inspect(%@for{expressions: expressions}, opts) do
-        concat(["("] ++ Enum.map(expressions, &Kernel.inspect(&1, opts)) ++ [")"])
+        expressions =
+          expressions
+          |> Enum.map(&to_doc(&1, opts))
+          |> Enum.intersperse(break(" "))
+          |> concat()
+
+        concat(["(", expressions, ")"])
       end
     end
   end
@@ -106,7 +112,7 @@ defmodule Signo.AST do
     defimpl Inspect do
       import Inspect.Algebra
       def inspect(%@for{expression: expression}, opts) do
-        concat(["'", Kernel.inspect(expression, opts)])
+        concat("'", to_doc(expression, opts))
       end
     end
 
@@ -159,7 +165,7 @@ defmodule Signo.AST do
     defimpl Inspect do
       import Inspect.Algebra
       def inspect(%@for{value: number}, opts) do
-        Kernel.inspect(number, opts)
+        to_doc(number, opts)
       end
     end
 
@@ -270,14 +276,14 @@ defmodule Signo.AST do
 
     defimpl Inspect do
       import Inspect.Algebra
-      def inspect(%@for{arguments: args}, opts) do
-        args =
+      def inspect(%@for{arguments: args}, _opts) do
+        arguments =
           args
-          |> Enum.map(&Kernel.inspect(&1.reference, opts))
+          |> Enum.map(& &1.reference)
           |> Enum.intersperse(break(" "))
           |> concat()
 
-        concat(["<lambda>(", args, "-> ...)"])
+        concat(["<lambda>(", arguments, " ", "-> ...)"])
       end
     end
   end

@@ -103,7 +103,7 @@ defmodule Signo.StdLib do
   """
   @doc section: :general
   @spec inspect([AST.value()]) :: Atom.t()
-  def inspect([value]) when is_value(value) do
+  def inspect([value]) do
     IO.inspect(value)
   end
 

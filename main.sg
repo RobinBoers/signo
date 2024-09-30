@@ -52,6 +52,16 @@
   (print "hello from scope!")
   (let y (* 2 coolNumber))))
 
+(inspect 1.0)
+(inspect #apple)
+(inspect #true)
+(inspect "blah")
+(inspect ())
+(inspect '(wibble wobble))
+(inspect (tie "hello" "world"))
+(inspect fact)
+(inspect print)
+
 ; y is undefined here because it's only defined in the block scope
 (print "gonna crash now...")
 (print y)
