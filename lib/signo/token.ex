@@ -14,6 +14,7 @@ defmodule Signo.Token do
 
     - `type`: the type of token, see `t:type/0`.
     - `lexeme`: the string as found in the source code.
+    - `pos`: the `Signo.Position` where the source string was found.
     """
 
     field :type, type() | :error
@@ -31,7 +32,7 @@ defmodule Signo.Token do
 
   @typedoc """
   The value of the literal as an elixir `t:term/0`.
-  Example: `30_000`
+  Example: `30_000`.
   """
   @type literal :: binary() | number() | atom()
 
