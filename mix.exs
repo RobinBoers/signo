@@ -53,6 +53,7 @@ defmodule Signo.MixProject do
       "docs/language-features.md",
       "docs/procedures.md",
       "docs/immutability.md",
+      "docs/namespaces.md",
       "docs/example.md"
     ],
     groups_for_modules: [

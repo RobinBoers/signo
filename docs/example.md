@@ -43,11 +43,27 @@
 (def fact (n) (if (!= n 1) (* n (fact (- n 1))) 1))
 (print (fact 4))
 
+; inspect pretty prints any expression and returns it,
+; print stringifies compatible expressions (strings, atoms, nil, numbers)
+; and returns ok
+(inspect print)
+(print (inspect #apple)) ; prints "#apple" and then "apple"
+
 ; this is a block: the last expression will be returned, and 
 ; it has a seperate scope, but inherits from global scope
 (print (do
   (print "hello from scope!")
   (let y (* 2 coolNumber))))
+
+(inspect 1.0)
+(inspect #apple)
+(inspect #true)
+(inspect "blah")
+(inspect ())
+(inspect '(wibble wobble))
+(inspect (tie "hello" "world"))
+(inspect fact)
+(inspect print)
 
 ; y is undefined here because it's only defined in the block scope
 (print "gonna crash now...")
