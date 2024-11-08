@@ -6,7 +6,7 @@ defmodule Signo.Lexer do
   alias Signo.Token
 
   @whitespace ["\n", "\t", "\v", "\r", " "]
-  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">"]
+  @specials ["_", "=", "+", "-", "*", "/", "^", "%", "#", "&", "@", "!", "?", "~", "<", ">", ":"]
 
   defguardp is_whitespace(ch) when ch in @whitespace
   defguardp is_special(ch) when ch in @specials

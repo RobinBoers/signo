@@ -11,6 +11,7 @@ defmodule Signo.SpecialForms do
   alias Signo.AST.String
   alias Signo.AST.Symbol
   alias Signo.Env
+  alias Signo.Position
   alias Signo.TypeError
 
   @doc """
@@ -22,9 +23,9 @@ defmodule Signo.SpecialForms do
       20
 
   """
-  def let([%Symbol{reference: ref}, initializer], env, _) do
+  def let([%Symbol{reference: ref}, initializer], env, pos) do
     {value, env} = eval(initializer, env)
-    {value, Env.assign(env, ref, value)}
+    {value, Env.assign(env, ref, value, pos)}
   end
 
   @doc """
@@ -151,9 +152,54 @@ defmodule Signo.SpecialForms do
 
   """
   def include([%String{value: path}], env, pos) do
-    base = if pos.path != :nofile, 
-      do: Path.dirname(pos.path), else: ""
+    path
+    |> relative_to(pos)
+    |> Signo.eval_file!(env)
+  end
 
-    Signo.eval_file!(Path.join(base, path), env)
+  defp relative_to(path, pos) do
+    pos |> cwd() |> Path.join(path)
+  end
+
+  defp cwd(%Position{path: :nofile}), do: ""
+  defp cwd(%Position{path: path}), do: Path.dirname(path)
+
+  @doc """
+  Similar to `include/3`, but where `include/3` exposes and mutates 
+  global scope, `import/3` executes the file in an isolated container 
+  and imports the resulting `Signo.Env` into global scope under a namespace.
+
+        sig> (import "math.sg" as math)
+        sig> (math:fact 5)
+        120
+
+  If unspecified, the namespace is derived from the given path.
+
+        sig> (import "math.sg")
+        sig> math:pi
+        3.14159
+      
+  """
+  def _import(args, env, pos) do
+    {path, ns} = infer_ns(args)
+
+    {value, %Env{scope: defs}} =
+      path
+      |> relative_to(pos)
+      |> Signo.eval_file!()
+
+    {value, Env.import(env, ns, defs)}
+  end
+
+  defp infer_ns([%String{value: path}]) do
+    [ns | _] = path |> Path.basename() |> Elixir.String.split(".")
+    {path, ns}
+  end
+
+  defp infer_ns([%String{value: path}, %{reference: "as"}, ns]) do
+    case ns do
+      %{value: ns} -> {path, ns}
+      %{reference: ns} -> {path, ns}
+    end
   end
 end

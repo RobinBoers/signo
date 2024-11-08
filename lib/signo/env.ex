@@ -9,17 +9,19 @@ defmodule Signo.Env do
   use TypedStruct
 
   alias Signo.AST
+  alias Signo.DefinitionError
   alias Signo.Position
   alias Signo.ReferenceError
 
   @type scope :: %{AST.ref() => AST.value()}
+  @type definitions :: Enumerable.t {AST.ref(), AST.value()}
 
   typedstruct enforce: true do
     field :parent, t() | nil, default: nil
     field :scope, scope(), default: %{}
   end
 
-  @spec new(t(), [{AST.ref(), AST.value()}]) :: t()
+  @spec new(t(), definitions()) :: t()
   def new(parent, definitions \\ []) do
     %__MODULE__{
       parent: parent,
@@ -27,9 +29,24 @@ defmodule Signo.Env do
     }
   end
 
-  @spec assign(t(), AST.ref(), AST.value()) :: t()
-  def assign(env = %__MODULE__{}, ref, value) do
-    %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
+  @spec import(t(), AST.ref(), definitions()) :: t()
+  def import(env = %__MODULE__{}, namespace, definitions) do
+    namespaced_scope =
+      definitions
+      |> Enum.reject(fn {ref, _} -> String.contains?(ref, ":") end)
+      |> Map.new(fn {ref, value} -> {"#{namespace}:#{ref}", value} end)
+
+    %__MODULE__{env | scope: Map.merge(env.scope, namespaced_scope)}
+  end
+
+  @spec assign(t(), AST.ref(), AST.value(), Position.t()) :: t()
+  def assign(env, ref, value, pos \\ %Position{})
+  def assign(env = %__MODULE__{}, ref, value, pos) do
+    if String.contains?(ref, ":") do
+      raise DefinitionError, reference: ref, position: pos
+    else
+      %__MODULE__{env | scope: Map.put(env.scope, ref, value)}
+    end
   end
 
   @spec lookup!(nil, AST.ref(), Position.t()) :: no_return()

@@ -36,6 +36,7 @@ defmodule Signo.StdLib do
       "lambda" => Construct.new(:lambda),
       "def" => Construct.new(:_def),
       "include" => Construct.new(:include),
+      "import" => Construct.new(:_import),
       "inspect" => Builtin.new(:inspect),
       "print" => Builtin.new(:print),
       "not" => Builtin.new(:_not),
