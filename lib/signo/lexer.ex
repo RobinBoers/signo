@@ -31,7 +31,7 @@ defmodule Signo.Lexer do
 
   def lex!(source, pos = %Position{}) do
     source
-    |> String.replace("\n\r", "\n")
+    |> String.replace("\r\n", "\n")
     |> String.graphemes()
     |> lex(pos)
   end
