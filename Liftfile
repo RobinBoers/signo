@@ -1,0 +1,5 @@
+name: signo
+type: static
+host: nov
+src: doc
+target: docs.dupunkto.org/signo
