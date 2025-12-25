@@ -71,7 +71,7 @@ defmodule Signo.AST do
     A data structure holding a list of expressions.
 
     Internally implemented as an Elixir list, which is in turn
-    implemented a linked list.
+    implemented as a linked list.
     """
 
     typedstruct enforce: true do
