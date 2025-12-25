@@ -60,6 +60,9 @@ defmodule Signo.AST do
     or is_struct(node, AST.Macro)
 
   typedstruct enforce: true do
+    @typedoc """
+    Root node of the abstract syntax tree.
+    """
     field :expressions, [expression()]
   end
 
