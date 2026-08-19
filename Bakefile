@@ -1,30 +1,15 @@
 #!/bin/bash
 
+use elixir
+
 SRC="main.sg"
 
 build() {
-  mix compile >/dev/null
+  quiet mix compile
   mix execute $SRC
 }
 
-check() {
-  mix check --no-retry
-}
-
-docs() {
-  mix docs --open
-}
-
 repl() {
-  mix compile >/dev/null
+  quiet mix compile
   rlwrap mix repl
-}
-
-publish() {
-  mix docs
-  lift deploy
-}
-
-release() {
-  mix hex.publish
 }
