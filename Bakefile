@@ -6,10 +6,10 @@ SRC="main.sg"
 
 build() {
   quiet mix compile
-  mix execute $SRC
+  mix signo.execute $SRC
 }
 
 repl() {
   quiet mix compile
-  rlwrap mix repl
+  rlwrap mix signo.repl
 }

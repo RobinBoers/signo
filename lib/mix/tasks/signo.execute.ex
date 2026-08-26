@@ -1,8 +1,8 @@
-defmodule Mix.Tasks.Execute do
+defmodule Mix.Tasks.Signo.Execute do
   @moduledoc """
   Compiles and runs a file using the `Signo` compiler.
 
-      $ mix execute hello.sg
+      $ mix signo.execute hello.sg
       hello, world!
 
   """
@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Execute do
   end
 
   def run(_args) do
-    IO.puts("Usage: mix execute <PATH>")
+    IO.puts("Usage: mix signo.execute <PATH>")
     IO.puts("")
   end
 end

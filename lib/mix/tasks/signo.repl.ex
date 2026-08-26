@@ -1,8 +1,8 @@
-defmodule Mix.Tasks.Repl do
+defmodule Mix.Tasks.Signo.Repl do
   @moduledoc """
   Starts a REPL (read-evaluate-print loop) session.
 
-      $ mix repl
+      $ mix signo.repl
       Erlang/OTP 26 [erts-14.2.1] [source] [64-bit] [smp:11:11] [ds:11:11:10] [async-threads:1] [jit]
 
       Interactive Signo v0.1.0 (Elixir/1.16.2)
@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Repl do
   to implement. So if you want a decent typing experience, consider installing
   [rlwrap](https://github.com/hanslub42/rlwrap) and running the REPL like this:
 
-      rlwrap mix repl
+      rlwrap mix signo.repl
 
   """
   use Mix.Task
