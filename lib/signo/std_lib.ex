@@ -25,6 +25,8 @@ defmodule Signo.StdLib do
   alias Signo.AST.String
   alias Signo.Env
 
+  require Logger
+
   @doc false
   @spec kernel() :: Env.t()
   def kernel do
@@ -110,7 +112,7 @@ defmodule Signo.StdLib do
 
   @doc """
   Prints a string representation of the given argument
-  to stdout, and returns `#ok`.
+  to stdout, returns `#ok`.
 
   Only works for builtin types implementing `String.Chars`:
 
@@ -135,8 +137,8 @@ defmodule Signo.StdLib do
   @doc """
   Boolean `not` operator.
 
-  Receives any value (not limited to booleans) and returns `#true` for falsy values,
-  and `#false` for truthy ones.
+  Receives any value (not limited to booleans) and returns `#true` if falsy,
+  and `#false` if truthy.
 
       sig> (not 10)
       #false
@@ -377,7 +379,7 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Raise `x` to the power `n`, that is `xⁿ`.
+  Raises `x` to the power `n`, that is `xⁿ`.
 
       sig> (^ 2 3)
       8
@@ -696,7 +698,7 @@ defmodule Signo.StdLib do
   Returns the first item of a list or
   the first Unicode grapheme in a string.
 
-      sig> (first ("hell" "o"))
+      sig> (first '("hell" "o"))
       "hell"
 
   """
@@ -769,19 +771,24 @@ defmodule Signo.StdLib do
   end
 
   @doc """
-  Pushes the given item onto the end of a list.
-
-  Look out: this function *only accepts lists*. To
-  concatinate strings, use `concat/2`.
+  Pushes the given item onto the end of a list or string.
 
       sig> (push 3 '(1 2))
       (1 2 3)
+      sig> (push "o" "hell")
+      "hello"
 
   """
   @doc section: :lists
   @spec push([AST.value() | List.t()]) :: List.t()
   def push([item, %List{expressions: expressions}]) when is_value(item) do
     List.new(expressions ++ [item])
+  end
+
+  @spec push([String.t()]) :: String.t()
+  def push([item, string]) when both_strings(item, string) do
+    Logger.warning("Consider using concat/2 rather than push/2 for concatinating strings.")
+    String.new(string.value <> item.value)
   end
 
   @doc """
