@@ -49,6 +49,9 @@ defmodule Signo.AST do
           | AST.Builtin.t()
           | AST.Macro.t()
 
+  defguard is_empty(node)
+    when is_struct(node, AST.List) and node.expressions == []
+
   defguard is_value(node)
     when is_empty(node)
     or is_struct(node, AST.Number)
@@ -57,9 +60,6 @@ defmodule Signo.AST do
     or is_struct(node, AST.Lambda)
     or is_struct(node, AST.Builtin)
     or is_struct(node, AST.Macro)
-
-  defguard is_empty(node)
-    when is_struct(node, AST.List) and node.expressions == []
 
   typedstruct enforce: true do
     @typedoc """
