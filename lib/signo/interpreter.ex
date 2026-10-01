@@ -1,7 +1,7 @@
 defmodule Signo.Interpreter do
   @moduledoc false
 
-  import Signo.AST, only: [is_value: 1]
+  import Signo.AST, only: [is_value: 1, is_empty: 1]
 
   alias Signo.AST
   alias Signo.AST.Atom
@@ -9,7 +9,6 @@ defmodule Signo.Interpreter do
   alias Signo.AST.Construct
   alias Signo.AST.Lambda
   alias Signo.AST.List
-  alias Signo.AST.Nil
   alias Signo.AST.Quoted
   alias Signo.AST.Symbol
   alias Signo.Env
@@ -29,7 +28,7 @@ defmodule Signo.Interpreter do
   end
 
   @spec evaluate([AST.expression()], Env.t()) :: {AST.value(), Env.t()}
-  defp evaluate([], env), do: {Nil.new(), env}
+  defp evaluate([], env), do: {List.new(), env}
   defp evaluate([node], env), do: eval(node, env)
 
   defp evaluate([node | rest], env) do
@@ -90,7 +89,7 @@ defmodule Signo.Interpreter do
     case object do
       %Atom{value: true} -> true
       %Atom{value: false} -> false
-      %Nil{} -> false
+      object when is_empty(object) -> false
       _ -> true
     end
   end

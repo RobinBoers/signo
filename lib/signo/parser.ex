@@ -6,7 +6,6 @@ defmodule Signo.Parser do
   alias Signo.AST
   alias Signo.AST.Atom
   alias Signo.AST.List
-  alias Signo.AST.Nil
   alias Signo.AST.Number
   alias Signo.AST.Quoted
   alias Signo.AST.String
@@ -55,9 +54,6 @@ defmodule Signo.Parser do
 
   defp parse_list(tokens, collected \\ [], pos) do
     case tokens do
-      [%Token{type: :closing} | rest] when collected == [] ->
-        {Nil.new(), rest}
-
       [%Token{type: :closing} | rest] ->
         {collected |> Enum.reverse() |> List.new(pos), rest}
 

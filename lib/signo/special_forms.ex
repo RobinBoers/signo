@@ -7,7 +7,6 @@ defmodule Signo.SpecialForms do
 
   alias Signo.AST.Lambda
   alias Signo.AST.List
-  alias Signo.AST.Nil
   alias Signo.AST.String
   alias Signo.AST.Symbol
   alias Signo.Env
@@ -65,7 +64,7 @@ defmodule Signo.SpecialForms do
 
   """
   def _if([condition, then], env, pos) do
-    _if([condition, then, Nil.new()], env, pos)
+    _if([condition, then, List.new([], pos)], env, pos)
   end
 
   def _if([condition, then, otherwise], env, _) do

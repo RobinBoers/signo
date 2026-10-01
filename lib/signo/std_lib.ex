@@ -20,7 +20,6 @@ defmodule Signo.StdLib do
   alias Signo.AST.Builtin
   alias Signo.AST.Construct
   alias Signo.AST.List
-  alias Signo.AST.Nil
   alias Signo.AST.Number
   alias Signo.AST.String
   alias Signo.Env
@@ -119,7 +118,7 @@ defmodule Signo.StdLib do
     - Strings
     - Numbers
     - Atoms
-    - Nil
+    - Nil (`()`)
 
   ## Example
 
@@ -704,16 +703,16 @@ defmodule Signo.StdLib do
   """
   @doc section: :lists
   @spec first([List.t()]) :: AST.value()
-  def first([%List{expressions: []}]), do: Nil.new()
+  def first([%List{expressions: []} = tail]), do: tail
   def first([%List{expressions: [head | _]}]), do: head
 
-  @spec first([String.t()]) :: String.t() | Nil.t()
-  def first([%String{value: ""}]), do: Nil.new()
+  @spec first([String.t()]) :: String.t() | List.t()
+  def first([%String{value: ""}]), do: List.new()
 
   def first([%String{value: a}]) do
     if first = Elixir.String.first(a),
       do: String.new(first),
-      else: Nil.new()
+      else: List.new()
   end
 
   @doc """
@@ -733,14 +732,14 @@ defmodule Signo.StdLib do
   @doc section: :lists
   @spec last([List.t()]) :: AST.value()
   def last([%List{expressions: expressions}]) do
-    Elixir.List.last(expressions, Nil.new())
+    Elixir.List.last(expressions, List.new())
   end
 
   @spec last([String.t()]) :: String.t()
   def last([%String{value: a}]) do
     if last = Elixir.String.last(a),
       do: String.new(last),
-      else: Nil.new()
+      else: List.new()
   end
 
   @doc """
@@ -760,14 +759,14 @@ defmodule Signo.StdLib do
   @doc section: :lists
   @spec nth([Number.t() | List.t()]) :: AST.value()
   def nth([%Number{value: index}, %List{expressions: expressions}]) do
-    Enum.at(expressions, index, Nil.new())
+    Enum.at(expressions, index, List.new())
   end
 
   @spec nth([String.t()]) :: String.t()
   def nth([%Number{value: index}, %String{value: a}]) do
     if grapheme = Elixir.String.at(a, index),
       do: String.new(grapheme),
-      else: Nil.new()
+      else: List.new()
   end
 
   @doc """
@@ -809,8 +808,7 @@ defmodule Signo.StdLib do
   @spec pop([List.t()]) :: List.t()
   def pop([%List{} = list]) do
     case list.expressions do
-      [] -> List.new([Nil.new(), Nil.new()])
-      [head] -> List.new([head, Nil.new()])
+      [] -> List.new([List.new(), List.new()])
       [head | tail] -> List.new([head, List.new(tail)])
     end
   end
@@ -819,7 +817,7 @@ defmodule Signo.StdLib do
   def pop([%String{value: a}]) do
     case Elixir.String.next_grapheme(a) do
       {char, rest} -> List.new([String.new(char), String.new(rest)])
-      nil -> List.new([Nil.new(), String.new("")])
+      nil -> List.new([List.new(), String.new("")])
     end
   end
 

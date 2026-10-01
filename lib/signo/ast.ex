@@ -15,7 +15,6 @@ defmodule Signo.AST do
   @type expression ::
           AST.List.t()
           | AST.Quoted.t()
-          | AST.Nil.t()
           | AST.Number.t()
           | AST.Atom.t()
           | AST.String.t()
@@ -35,7 +34,7 @@ defmodule Signo.AST do
   simplied by evaluating it.
   """
   @type value ::
-          AST.Nil.t()
+          AST.List.t()
           | AST.Number.t()
           | AST.Atom.t()
           | AST.String.t()
@@ -51,13 +50,16 @@ defmodule Signo.AST do
           | AST.Macro.t()
 
   defguard is_value(node)
-    when is_struct(node, AST.Nil)
+    when is_empty(node)
     or is_struct(node, AST.Number)
     or is_struct(node, AST.Atom)
     or is_struct(node, AST.String)
     or is_struct(node, AST.Lambda)
     or is_struct(node, AST.Builtin)
     or is_struct(node, AST.Macro)
+
+  defguard is_empty(node)
+    when is_struct(node, AST.List) and node.expressions == []
 
   typedstruct enforce: true do
     @typedoc """
@@ -80,7 +82,7 @@ defmodule Signo.AST do
     end
 
     @spec new([AST.expression()], Position.t()) :: t()
-    def new(expressions = [_ | _], pos \\ %Position{}) do
+    def new(expressions \\ [], pos \\ %Position{}) do
       %__MODULE__{expressions: expressions, pos: pos}
     end
 
@@ -95,6 +97,10 @@ defmodule Signo.AST do
 
         concat(["(", expressions, ")"])
       end
+    end
+
+    defimpl Elixir.String.Chars do
+      def to_string(%@for{expressions: []}), do: ""
     end
   end
 
@@ -123,31 +129,6 @@ defmodule Signo.AST do
       def to_string(%@for{expression: expression}) do
         Kernel.to_string(expression)
       end
-    end
-  end
-
-  defmodule Nil do
-    @moduledoc """
-    The `nil` type.
-    """
-
-    typedstruct do
-    end
-
-    @spec new() :: t()
-    def new do
-      %__MODULE__{}
-    end
-
-    defimpl Inspect do
-      import Inspect.Algebra
-      def inspect(%@for{}, _opts) do
-        concat(empty(), "()")
-      end
-    end
-
-    defimpl Elixir.String.Chars do
-      def to_string(%@for{}), do: ""
     end
   end
 
