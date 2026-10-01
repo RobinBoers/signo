@@ -855,7 +855,7 @@ defmodule Signo.StdLib do
   @spec product([List.t()]) :: Number.t()
   def product([%List{expressions: expressions}]) do
     expressions
-    |> Enum.reduce(0, fn %Number{value: num}, prod -> prod * num end)
+    |> Enum.reduce(1, fn %Number{value: num}, prod -> prod * num end)
     |> Number.new()
   end
 
