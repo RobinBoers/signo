@@ -55,6 +55,13 @@ defmodule Signo.StdLib do
       "-" => Builtin.new(:sub),
       "*" => Builtin.new(:mult),
       "/" => Builtin.new(:div),
+      "div" => Builtin.new(:_div),
+      "rem" => Builtin.new(:_rem),
+      "mod" => Builtin.new(:_mod),
+      "floor" => Builtin.new(:floor),
+      "ceil" => Builtin.new(:ceil),
+      "round" => Builtin.new(:round),
+      "trunc" => Builtin.new(:trunc),
       "^" => Builtin.new(:pow),
       "sqrt" => Builtin.new(:sqrt),
       "abs" => Builtin.new(:abs),
@@ -375,6 +382,115 @@ defmodule Signo.StdLib do
   @spec div([Number.t()]) :: Number.t()
   def div([a, b]) when both_numbers(a, b) do
     Number.new(a.value / b.value)
+  end
+
+  @doc """
+  Divides two numbers, truncated towards zero.
+
+      sig> (div 7 2)
+      3
+      sig> (div -7 2)
+      -3
+
+  """
+  @doc section: :numbers
+  @spec _div([Number.t()]) :: Number.t()
+  def _div([%Number{value: a}, %Number{value: b}]) when is_integer(a) and is_integer(b) do
+    a |> Kernel.div(b) |> Number.new()
+  end
+
+  @doc """
+  Remainder of division, truncated towards zero.
+
+  The result has the sign of the dividend.
+
+      sig> (rem 7 2)
+      1
+      sig> (rem -7 2)
+      -1
+
+  """
+  @doc section: :numbers
+  @spec _rem([Number.t()]) :: Number.t()
+  def _rem([%Number{value: a}, %Number{value: b}]) when is_integer(a) and is_integer(b) do
+    a |> Kernel.rem(b) |> Number.new()
+  end
+
+  @doc """
+  Modulo of division, floored.
+
+  The result has the sign of the divisor.
+
+      sig> (mod 7 2)
+      1
+      sig> (mod -7 2)
+      1
+
+  """
+  @doc section: :numbers
+  @spec _mod([Number.t()]) :: Number.t()
+  def _mod([%Number{value: a}, %Number{value: b}]) when is_integer(a) and is_integer(b) do
+    a |> Integer.mod(b) |> Number.new()
+  end
+
+  @doc """
+  Rounds `x` down to the nearest integer.
+
+      sig> (floor 3.7)
+      3
+      sig> (floor (- 0 3.2))
+      -4
+
+  """
+  @doc section: :numbers
+  @spec floor([Number.t()]) :: Number.t()
+  def floor([%Number{value: x}]) do
+    x |> Kernel.floor() |> Number.new()
+  end
+
+  @doc """
+  Rounds `x` up to the nearest integer.
+
+      sig> (ceil 3.2)
+      4
+      sig> (ceil (- 0 3.7))
+      -3
+
+  """
+  @doc section: :numbers
+  @spec ceil([Number.t()]) :: Number.t()
+  def ceil([%Number{value: x}]) do
+    x |> Kernel.ceil() |> Number.new()
+  end
+
+  @doc """
+  Rounds `x` to the nearest integer, with halves rounded away from zero.
+
+      sig> (round 3.5)
+      4
+      sig> (round (- 0 3.5))
+      -4
+
+  """
+  @doc section: :numbers
+  @spec round([Number.t()]) :: Number.t()
+  def round([%Number{value: x}]) do
+    x |> Kernel.round() |> Number.new()
+  end
+
+  @doc """
+  Rounds `x` towards zero, discarding the fractional part.
+
+      sig> (trunc 3.7)
+      3
+      sig> (trunc (- 0 3.7))
+      -3
+
+  """
+  @doc section: :numbers
+  @spec trunc([Number.t()]) :: Number.t()
+  def trunc([%Number{value: x}]) do
+    x |> Kernel.trunc() |> Number.new()
   end
 
   @doc """
