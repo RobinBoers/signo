@@ -15,11 +15,13 @@ defmodule Signo.Lexer do
   defguardp is_upper(ch) when "A" <= ch and ch <= "Z"
   defguardp is_letter(ch) when is_lower(ch) or is_upper(ch)
   defguardp is_alnum(ch) when is_letter(ch) or is_digit(ch) or is_special(ch)
+  defguardp is_dot(ch) when ch == "."
+  defguardp is_sign(ch) when  ch == "-"
+  defguardp is_numeric(ch) when is_digit(ch) or is_dot(ch) or is_sign(ch)
   defguardp is_semicolon(ch) when ch == ";"
   defguardp is_newline(ch) when ch == "\n"
   defguardp is_quote(ch) when ch == "\""
   defguardp is_hash(ch) when ch == "#"
-  defguardp is_dot(ch) when ch == "."
 
   @spec lex!(String.t(), Path.t()) :: [Token.t()]
   @spec lex!(String.t(), Position.t()) :: [Token.t()]
@@ -43,6 +45,10 @@ defmodule Signo.Lexer do
     Enum.reverse([Token.new(:eof, "", pos) | tokens])
   end
 
+  # i'd rather not have this clause but sometimes you just gotta
+  defp lex(chars = ["-", ch | _], tokens, pos) when is_digit(ch),
+    do: read_number(chars, tokens, pos)
+
   defp lex(chars = [ch | rest], tokens, pos) do
     cond do
       is_whitespace(ch) -> lex(rest, tokens, inc(pos, ch))
@@ -61,16 +67,18 @@ defmodule Signo.Lexer do
   end
 
   defp read_number(chars, tokens, pos) do
-    {collected, rest} = collect_number(chars)
+    {collected, rest} = collect_number(chars, [])
     lexeme = Enum.join(collected)
     token = Token.new({:literal, parse_number(lexeme)}, lexeme, pos)
     lex(rest, [token | tokens], inc(pos, collected))
   end
 
-  defp collect_number(chars = [ch | rest], collected \\ []) do
+  defp collect_number([], collected), do: {Enum.reverse(collected), []}
+  defp collect_number(chars = [ch | rest], collected) do
     cond do
+      is_sign(ch) and collected != [] -> {Enum.reverse(collected), chars}
       is_dot(ch) and "." in collected -> {Enum.reverse(collected), chars}
-      is_digit(ch) or is_dot(ch) -> collect_number(rest, [ch | collected])
+      is_numeric(ch) -> collect_number(rest, [ch | collected])
       true -> {Enum.reverse(collected), chars}
     end
   end
