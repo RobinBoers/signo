@@ -21,7 +21,7 @@ defmodule Signo.AST do
           | AST.Symbol.t()
           | AST.Lambda.t()
           | AST.Builtin.t()
-          | AST.Macro.t()
+          | AST.Construct.t()
 
   @typedoc """
   A reference is a key by which a `t:value/0` can
@@ -47,7 +47,7 @@ defmodule Signo.AST do
   @type callable ::
           AST.Lambda.t()
           | AST.Builtin.t()
-          | AST.Macro.t()
+          | AST.Construct.t()
 
   defguard is_empty(node)
     when is_struct(node, AST.List) and node.expressions == []
@@ -59,7 +59,7 @@ defmodule Signo.AST do
     or is_struct(node, AST.String)
     or is_struct(node, AST.Lambda)
     or is_struct(node, AST.Builtin)
-    or is_struct(node, AST.Macro)
+    or is_struct(node, AST.Construct)
 
   typedstruct enforce: true do
     @typedoc """
