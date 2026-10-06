@@ -43,6 +43,7 @@ defmodule Signo.StdLib do
       "not" => Builtin.new(:_not),
       "and" => Builtin.new(:_and),
       "or" => Builtin.new(:_or),
+      "nand" => Builtin.new(:_nand),
       "nor" => Builtin.new(:_nor),
       "xor" => Builtin.new(:_xor),
       "==" => Builtin.new(:eq),
@@ -106,8 +107,8 @@ defmodule Signo.StdLib do
   argument.
 
       sig> (inspect if)
-      <macro>(if)
-      <macro>(if)
+      <macro>(_if)
+      <macro>(_if)
 
   """
   @doc section: :general
@@ -184,7 +185,7 @@ defmodule Signo.StdLib do
 
       sig> (or () #true)
       #true
-      sig> (and #false ())
+      sig> (or #false ())
       #false
 
   """
@@ -196,6 +197,24 @@ defmodule Signo.StdLib do
 
   @doc """
   Boolean `nand` operator.
+
+  Receives two values (not limited to booleans), and returns `#false` if
+  both are truthy. Does NOT short-circuit!
+
+      sig> (nand 10 #true)
+      #false
+      sig> (nand #false 10)
+      #true
+
+  """
+  @doc section: :operators
+  @spec _nand([AST.value()]) :: Atom.t()
+  def _nand([a, b]) when both_values(a, b) do
+    Atom.new(not (truthy?(a) and truthy?(b)))
+  end
+
+  @doc """
+  Boolean `nor` operator.
 
   Receives two values (not limited to booleans), and returns `#true` if
   both are falsy. Does NOT short-circuit!
@@ -209,7 +228,7 @@ defmodule Signo.StdLib do
   @doc section: :operators
   @spec _nor([AST.value()]) :: Atom.t()
   def _nor([a, b]) when both_values(a, b) do
-    Atom.new(not (truthy?(a) and truthy?(b)))
+    Atom.new(not (truthy?(a) or truthy?(b)))
   end
 
   @doc """
@@ -375,7 +394,7 @@ defmodule Signo.StdLib do
   Divides two numbers.
 
       sig> (/ 6 2)
-      3
+      3.0
 
   """
   @doc section: :numbers
@@ -497,7 +516,7 @@ defmodule Signo.StdLib do
   Raises `x` to the power `n`, that is `xⁿ`.
 
       sig> (^ 2 3)
-      8
+      8.0
 
   """
   @doc section: :numbers
@@ -510,7 +529,7 @@ defmodule Signo.StdLib do
   Square root of `x`.
 
       sig> (sqrt 4)
-      2
+      2.0
 
   """
   @doc section: :math
@@ -583,8 +602,8 @@ defmodule Signo.StdLib do
   @doc """
   Sine of `x` in radians.
 
-      sig> (sin (pi))
-      0
+      sig> (sin (/ (pi) 2))
+      1.0
 
   """
   @doc section: :math
@@ -597,7 +616,7 @@ defmodule Signo.StdLib do
   Cosine of `x` in radians.
 
       sig> (cos (pi))
-      -1
+      -1.0
 
   """
   @doc section: :math
@@ -609,8 +628,8 @@ defmodule Signo.StdLib do
   @doc """
   Tangent of `x` in radians.
 
-      sig> (tan (/ pi 4))
-      1
+      sig> (tan 0)
+      0.0
 
   """
   @doc section: :math
@@ -622,8 +641,8 @@ defmodule Signo.StdLib do
   @doc """
   Inverse sine of `x` in radians.
 
-      sig> (asin 0)
-      3.14159...
+      sig> (asin 1)
+      1.57079...
 
   """
   @doc section: :math
@@ -649,7 +668,7 @@ defmodule Signo.StdLib do
   Inverse tangent of `x` in radians.
 
       sig> (atan 0)
-      0
+      0.0
 
   """
   @doc section: :math
@@ -662,7 +681,7 @@ defmodule Signo.StdLib do
   Natural (base-e) logarithm of `x`.
 
       sig> (ln 1)
-      0
+      0.0
 
   """
   @doc section: :math
@@ -675,7 +694,7 @@ defmodule Signo.StdLib do
   Base-10 logarithm of `x`.
 
       sig> (log 100)
-      2
+      2.0
 
   """
   @doc section: :math
@@ -688,7 +707,7 @@ defmodule Signo.StdLib do
   Base-`n` logarithm of `x`.
 
       sig> (logn 2 8)
-      3
+      3.0
 
   """
   @doc section: :math
@@ -740,7 +759,7 @@ defmodule Signo.StdLib do
   Returns a string where all leading and trailing Unicode whitespaces have been removed.
 
       sig> (trim "   signo  ")
-      'signo'
+      "signo"
 
   """
   @doc section: :strings
@@ -913,11 +932,11 @@ defmodule Signo.StdLib do
       sig> (pop '("hell" "o" "world"))
       ("hell" ("o" "world"))
       sig> (pop ())
-      ((), ()))
+      (() ())
       sig> (pop "hello")
-      ("h", "ello"))
+      ("h" "ello")
       sig> (pop "")
-      ((), ""))
+      (() "")
 
   """
   @doc section: :lists

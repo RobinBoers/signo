@@ -10,6 +10,7 @@ defmodule Signo.MixProject do
     version: "0.0.2",
     elixir: "~> 1.16",
     start_permanent: Mix.env() == :prod,
+    elixirc_paths: elixirc_paths(Mix.env()),
     dialyzer: [plt_add_apps: [:mix]],
     deps: deps(),
 
@@ -32,6 +33,9 @@ defmodule Signo.MixProject do
   def application, do: [
     extra_applications: [:logger]
   ]
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp deps, do: [
     {:typed_struct, "~> 0.3.0"},

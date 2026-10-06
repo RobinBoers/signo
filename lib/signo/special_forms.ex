@@ -85,7 +85,7 @@ defmodule Signo.SpecialForms do
       10
       #ok
       sig> (print x)
-      [ReferenceError] x is undefined at nofile:2:8
+      [ReferenceError] 'x' is undefined at nofile:2:8
 
   """
   def _do(expressions, env, _) do
@@ -169,12 +169,14 @@ defmodule Signo.SpecialForms do
   and imports the resulting `Signo.Env` into global scope under a namespace.
 
         sig> (import "math.sg" as math)
+        ...
         sig> (math:fact 5)
         120
 
   If unspecified, the namespace is derived from the given path.
 
         sig> (import "math.sg")
+        ...
         sig> math:pi
         3.14159
       
