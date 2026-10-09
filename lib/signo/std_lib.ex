@@ -58,7 +58,7 @@ defmodule Signo.StdLib do
       "/" => Builtin.new(:div),
       "div" => Builtin.new(:_div),
       "rem" => Builtin.new(:_rem),
-      "mod" => Builtin.new(:_mod),
+      "%" => Builtin.new(:_mod),
       "floor" => Builtin.new(:floor),
       "ceil" => Builtin.new(:ceil),
       "round" => Builtin.new(:round),
@@ -440,9 +440,9 @@ defmodule Signo.StdLib do
 
   The result has the sign of the divisor.
 
-      sig> (mod 7 2)
+      sig> (% 7 2)
       1
-      sig> (mod -7 2)
+      sig> (% -7 2)
       1
 
   """
