@@ -14,6 +14,7 @@ defmodule Signo.AST do
   """
   @type expression ::
           AST.List.t()
+          | AST.Dict.t()
           | AST.Quoted.t()
           | AST.Number.t()
           | AST.Atom.t()
@@ -35,6 +36,7 @@ defmodule Signo.AST do
   """
   @type value ::
           AST.List.t()
+          | AST.Dict.t()
           | AST.Number.t()
           | AST.Atom.t()
           | AST.String.t()
@@ -54,6 +56,7 @@ defmodule Signo.AST do
 
   defguard is_value(node)
     when is_empty(node)
+    or is_struct(node, AST.Dict)
     or is_struct(node, AST.Number)
     or is_struct(node, AST.Atom)
     or is_struct(node, AST.String)
@@ -101,6 +104,37 @@ defmodule Signo.AST do
 
     defimpl Elixir.String.Chars do
       def to_string(%@for{expressions: []}), do: ""
+    end
+  end
+
+  defmodule Dict do
+    @moduledoc """
+    A data structure mapping atoms to values.
+
+    Internally implemented as an Elixir map.
+    """
+
+    typedstruct enforce: true do
+      field :entries, %{atom() => AST.value()}
+    end
+
+    @spec new(%{atom() => AST.value()}) :: t()
+    def new(entries \\ %{}) do
+      %__MODULE__{entries: entries}
+    end
+
+    defimpl Inspect do
+      import Inspect.Algebra
+      def inspect(%@for{entries: entries}, opts) do
+        entries =
+          entries
+          |> Enum.sort()
+          |> Enum.map(fn {key, value} -> concat(["##{key} ", to_doc(value, opts)]) end)
+          |> Enum.intersperse(break(" "))
+          |> concat()
+
+        concat(["<dict>(", entries, ")"])
+      end
     end
   end
 

@@ -19,6 +19,7 @@ defmodule Signo.StdLib do
   alias Signo.AST.Atom
   alias Signo.AST.Builtin
   alias Signo.AST.Construct
+  alias Signo.AST.Dict
   alias Signo.AST.List
   alias Signo.AST.Number
   alias Signo.AST.String
@@ -40,6 +41,8 @@ defmodule Signo.StdLib do
       "import" => Construct.new(:_import),
       "inspect" => Builtin.new(:inspect),
       "print" => Builtin.new(:print),
+      "dict" => Builtin.new(:dict),
+      ":" => Builtin.new(:dict),
       "not" => Builtin.new(:_not),
       "and" => Builtin.new(:_and),
       "or" => Builtin.new(:_or),
@@ -90,6 +93,9 @@ defmodule Signo.StdLib do
       "nth" => Builtin.new(:nth),
       "push" => Builtin.new(:push),
       "pop" => Builtin.new(:pop),
+      "get" => Builtin.new(:get),
+      "put" => Builtin.new(:put),
+      "delete" => Builtin.new(:delete),
       "sum" => Builtin.new(:sum),
       "product" => Builtin.new(:product),
       "join" => Builtin.new(:join),
@@ -139,6 +145,27 @@ defmodule Signo.StdLib do
   @spec print([AST.value()]) :: Atom.t()
   def print([value]) when is_value(value) do
     value |> IO.puts() |> Atom.new()
+  end
+
+  @doc """
+  Constructs a dictionary.
+
+      sig> (dict #a 10 #b 20)
+      <dict>(#a 10 #b 20)
+
+  Aliased as `:` too:
+
+      sig> (: #a 10 #b 20)
+      <dict>(#a 10 #b 20)
+
+  """
+  @doc section: :dicts
+  @spec dict([Atom.t() | AST.value()]) :: Dict.t()
+  def dict(arguments) do
+    arguments
+    |> Enum.chunk_every(2)
+    |> Map.new(fn [%Atom{value: key}, value] when is_value(value) -> {key, value} end)
+    |> Dict.new()
   end
 
   @doc """
@@ -881,24 +908,24 @@ defmodule Signo.StdLib do
   Returns the element at `index` in a list,
   or the Unicode grapheme at `index` in a string.
 
-      sig> (nth 1 '(1 2 3))
+      sig> (nth '(1 2 3) 1)
       2
-      sig> (nth 3 '(1 2 3))
+      sig> (nth '(1 2 3) 3)
       ()
-      sig> (nth 4 "hellö")
+      sig> (nth "hellö" 4)
       "ö"
-      sig> (nth 5 "hellö")
+      sig> (nth "hellö" 5)
       ()
 
   """
   @doc section: :lists
-  @spec nth([Number.t() | List.t()]) :: AST.value()
-  def nth([%Number{value: index}, %List{expressions: expressions}]) do
+  @spec nth([List.t() | Number.t()]) :: AST.value()
+  def nth([%List{expressions: expressions}, %Number{value: index}]) do
     Enum.at(expressions, index, List.new())
   end
 
   @spec nth([String.t()]) :: String.t()
-  def nth([%Number{value: index}, %String{value: a}]) do
+  def nth([%String{value: a}, %Number{value: index}]) do
     if grapheme = Elixir.String.at(a, index),
       do: String.new(grapheme),
       else: List.new()
@@ -907,20 +934,20 @@ defmodule Signo.StdLib do
   @doc """
   Pushes the given item onto the end of a list or string.
 
-      sig> (push 3 '(1 2))
+      sig> (push '(1 2) 3)
       (1 2 3)
-      sig> (push "o" "hell")
+      sig> (push "hell" "o")
       "hello"
 
   """
   @doc section: :lists
-  @spec push([AST.value() | List.t()]) :: List.t()
-  def push([item, %List{expressions: expressions}]) when is_value(item) do
+  @spec push([List.t() | AST.value()]) :: List.t()
+  def push([%List{expressions: expressions}, item]) when is_value(item) do
     List.new(expressions ++ [item])
   end
 
   @spec push([String.t()]) :: String.t()
-  def push([item, string]) when both_strings(item, string) do
+  def push([string, item]) when both_strings(string, item) do
     Logger.warning("Consider using concat/2 rather than push/2 for concatinating strings.")
     String.new(string.value <> item.value)
   end
@@ -954,6 +981,53 @@ defmodule Signo.StdLib do
       {char, rest} -> List.new([String.new(char), String.new(rest)])
       nil -> List.new([List.new(), String.new("")])
     end
+  end
+
+  @doc """
+  Gets the value for a specific `key` in `dict`.
+
+  Returns `()` if the given key is not in the map.
+
+      sig> (get (: #a 10) #a)
+      10
+      sig> (get (: #a 10) #b)
+      ()
+
+  """
+  @doc section: :dicts
+  @spec get([Dict.t() | Atom.t()]) :: AST.value()
+  def get([%Dict{entries: dict}, %Atom{value: key}]) do
+    Map.get(dict, key, List.new())
+  end
+
+  @doc """
+  Puts the given `value` under `key` in `dict`.
+
+      sig> (put (: #a 10) #b 20)
+      <dict>(#a 10 #b 20)
+      sig> (put (: #a 10) #a 20)
+      <dict>(#a 20)
+
+  """
+  @doc section: :dicts
+  @spec put([Dict.t() | Atom.t() | AST.value()]) :: Dict.t()
+  def put([%Dict{entries: entries}, %Atom{value: key}, value]) when is_value(value) do
+    entries |> Map.put(key, value) |> Dict.new()
+  end
+
+  @doc """
+  Deletes the value in `dict` for a specific `key`.
+
+      sig> (delete (: #a 10 #b 20) #a)
+      <dict>(#b 20)
+      sig> (delete (: #a 10) #b)
+      <dict>(#a 10)
+
+  """
+  @doc section: :dicts
+  @spec delete([Dict.t() | Atom.t()]) :: Dict.t()
+  def delete([%Dict{entries: entries}, %Atom{value: key}]) do
+    entries |> Map.delete(key) |> Dict.new()
   end
 
   @doc """

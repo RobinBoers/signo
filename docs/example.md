@@ -35,7 +35,7 @@
 
 ; lists :)
 (let x '(1 2))
-(let x (push 3 x))
+(let x (push x 3))
 (print (sum x))
 
 ; recursion
